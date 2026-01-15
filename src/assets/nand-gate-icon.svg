@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 60" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- NAND gate body: flat left, curved right -->
+  <path d="M 20 10 L 20 50 L 40 50 A 20 20 0 0 0 40 10 Z"/>
+  <!-- Input lines -->
+  <line x1="5" y1="20" x2="20" y2="20"/>
+  <line x1="5" y1="40" x2="20" y2="40"/>
+  <!-- Inversion bubble -->
+  <circle cx="64" cy="30" r="4"/>
+  <!-- Output line -->
+  <line x1="68" y1="30" x2="75" y2="30"/>
+</svg>

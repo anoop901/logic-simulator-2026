@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 60" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Decoder trapezoid body: narrower on left, wider on right -->
+  <path d="M 15 15 L 15 45 L 50 55 L 50 5 Z"/>
+  <!-- Input lines on left -->
+  <line x1="5" y1="25" x2="15" y2="25"/>
+  <line x1="5" y1="35" x2="15" y2="35"/>
+  <!-- Output lines on right -->
+  <line x1="50" y1="12" x2="75" y2="12"/>
+  <line x1="50" y1="24" x2="75" y2="24"/>
+  <line x1="50" y1="36" x2="75" y2="36"/>
+  <line x1="50" y1="48" x2="75" y2="48"/>
+</svg>

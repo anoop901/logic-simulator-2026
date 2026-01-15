@@ -1,0 +1,42 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: dark;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+/* Canvas grid pattern */
+.canvas-grid {
+  background-image: linear-gradient(
+      rgba(255, 255, 255, 0.03) 1px,
+      transparent 1px
+    ),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+@theme {
+  --animate-movingdash: movingdash 0.2s linear infinite;
+  @keyframes movingdash {
+    0% {
+      stroke-dashoffset: 10;
+    }
+    100% {
+      stroke-dashoffset: 0;
+    }
+  }
+}
