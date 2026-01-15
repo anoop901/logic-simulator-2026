@@ -8,13 +8,13 @@ import type {
   NotComponentOptions,
   RegisterComponentOptions,
 } from "../types/LogicComponent";
-import { AdderRenderer } from "./Adder";
-import { DecoderRenderer } from "./Decoder";
-import { GateRenderer } from "./Gate";
-import { MemoryRenderer } from "./Memory";
-import { MuxRenderer } from "./Mux";
-import { NotRenderer } from "./Not";
-import { RegisterRenderer } from "./Register";
+import AdderRenderer from "./AdderRenderer";
+import DecoderRenderer from "./DecoderRenderer";
+import GateRenderer from "./GateRenderer";
+import MemoryRenderer from "./MemoryRenderer";
+import MuxRenderer from "./MuxRenderer";
+import NotRenderer from "./NotRenderer";
+import RegisterRenderer from "./RegisterRenderer";
 
 // Render a component based on its kind
 export default function renderComponent(component: LogicComponent) {

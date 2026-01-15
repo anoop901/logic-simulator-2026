@@ -1,6 +1,5 @@
 import type { AdderComponentOptions } from "../types/LogicComponent";
-import type { TerminalInfo } from "./terminalInfoOfComponent";
-import type Position from "../types/Position";
+import { getAdderGeometry, NOTCH_DEPTH, TRAPEZOID_INSET } from "./adder";
 
 interface AdderRendererProps {
   x: number;
@@ -8,34 +7,7 @@ interface AdderRendererProps {
   options: AdderComponentOptions;
 }
 
-const ADDER_WIDTH = 40;
-const ADDER_HEIGHT = 100;
-const NOTCH_DEPTH = 10;
-const TRAPEZOID_INSET = 20;
-
-// Shared coordinate calculations (center-origin)
-function getAdderGeometry() {
-  const halfW = ADDER_WIDTH / 2;
-  const halfH = ADDER_HEIGHT / 2;
-
-  // Input A and B Y positions relative to center
-  const inputAY = -halfH + (ADDER_HEIGHT - NOTCH_DEPTH * 2) / 4;
-  const inputBY = halfH - (ADDER_HEIGHT - NOTCH_DEPTH * 2) / 4;
-
-  return {
-    halfW,
-    halfH,
-    inputAY,
-    inputBY,
-    // Key positions
-    leftX: -halfW,
-    rightX: halfW,
-    topY: -halfH,
-    bottomY: halfH,
-  };
-}
-
-export function AdderRenderer({ x, y }: AdderRendererProps) {
+export default function AdderRenderer({ x, y }: AdderRendererProps) {
   const geo = getAdderGeometry();
 
   // ALU-style path in center-origin coordinates
@@ -116,59 +88,4 @@ export function AdderRenderer({ x, y }: AdderRendererProps) {
       </text>
     </g>
   );
-}
-
-export default function terminalInfoOfAdder(
-  position: Position,
-  _options: AdderComponentOptions
-): TerminalInfo[] {
-  const geo = getAdderGeometry();
-
-  return [
-    // Input A (top-left)
-    {
-      name: "a",
-      direction: "in",
-      position: {
-        x: position.x + geo.leftX,
-        y: position.y + geo.inputAY,
-      },
-    },
-    // Input B (bottom-left)
-    {
-      name: "b",
-      direction: "in",
-      position: {
-        x: position.x + geo.leftX,
-        y: position.y + geo.inputBY,
-      },
-    },
-    // Carry in (top)
-    {
-      name: "cin",
-      direction: "in",
-      position: {
-        x: position.x,
-        y: position.y + geo.topY + TRAPEZOID_INSET / 2,
-      },
-    },
-    // Sum output (right)
-    {
-      name: "sum",
-      direction: "out",
-      position: {
-        x: position.x + geo.rightX,
-        y: position.y,
-      },
-    },
-    // Carry out (bottom)
-    {
-      name: "cout",
-      direction: "out",
-      position: {
-        x: position.x,
-        y: position.y + geo.bottomY - TRAPEZOID_INSET / 2,
-      },
-    },
-  ];
 }

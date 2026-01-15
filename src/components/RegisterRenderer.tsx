@@ -1,6 +1,5 @@
 import type { RegisterComponentOptions } from "../types/LogicComponent";
-import type { TerminalInfo } from "./terminalInfoOfComponent";
-import type Position from "../types/Position";
+import { getRegisterGeometry, REGISTER_HEIGHT } from "./register";
 
 interface RegisterRendererProps {
   x: number;
@@ -8,32 +7,11 @@ interface RegisterRendererProps {
   options: RegisterComponentOptions;
 }
 
-const REGISTER_WIDTH_SINGLE_BIT = 50;
-const REGISTER_WIDTH_MULTIBIT = 80;
-const REGISTER_HEIGHT = 40;
-
-// Shared coordinate calculations (center-origin)
-function getRegisterGeometry(bitWidth: number) {
-  const multiBit = bitWidth > 1;
-  const width = multiBit ? REGISTER_WIDTH_MULTIBIT : REGISTER_WIDTH_SINGLE_BIT;
-  const halfW = width / 2;
-  const halfH = REGISTER_HEIGHT / 2;
-
-  return {
-    width,
-    halfW,
-    halfH,
-    multiBit,
-    bitWidth,
-    // Key positions
-    leftX: -halfW,
-    rightX: halfW,
-    topY: -halfH,
-    bottomY: halfH,
-  };
-}
-
-export function RegisterRenderer({ x, y, options }: RegisterRendererProps) {
+export default function RegisterRenderer({
+  x,
+  y,
+  options,
+}: RegisterRendererProps) {
   const geo = getRegisterGeometry(options.bitWidth);
 
   return (
@@ -99,32 +77,4 @@ export function RegisterRenderer({ x, y, options }: RegisterRendererProps) {
       )}
     </g>
   );
-}
-
-export default function terminalInfoOfRegister(
-  position: Position,
-  options: RegisterComponentOptions
-): TerminalInfo[] {
-  const geo = getRegisterGeometry(options.bitWidth);
-
-  return [
-    // Data input (left)
-    {
-      name: "d",
-      direction: "in",
-      position: {
-        x: position.x + geo.leftX,
-        y: position.y,
-      },
-    },
-    // Data output (right)
-    {
-      name: "q",
-      direction: "out",
-      position: {
-        x: position.x + geo.rightX,
-        y: position.y,
-      },
-    },
-  ];
 }

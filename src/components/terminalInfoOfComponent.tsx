@@ -9,13 +9,13 @@ import type {
   RegisterComponentOptions,
 } from "../types/LogicComponent";
 import type Position from "../types/Position";
-import terminalInfoOfAdder from "./Adder";
-import terminalInfoOfDecoder from "./Decoder";
-import terminalInfoOfGate from "./Gate";
-import terminalInfoOfMemory from "./Memory";
-import terminalInfoOfMux from "./Mux";
-import terminalInfoOfNot from "./Not";
-import terminalInfoOfRegister from "./Register";
+import { terminalInfoOfAdder } from "./adder";
+import { terminalInfoOfDecoder } from "./decoder";
+import { terminalInfoOfGate } from "./gate";
+import { terminalInfoOfMemory } from "./memory";
+import { terminalInfoOfMux } from "./mux";
+import { terminalInfoOfNot } from "./not";
+import { terminalInfoOfRegister } from "./register";
 
 export interface TerminalInfo {
   name: string;
