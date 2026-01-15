@@ -234,24 +234,22 @@ export default function Canvas() {
         )}
 
         {components.map((component) => (
-          <>
-            <g
-              key={component.id}
-              style={{
-                cursor: draggingId === component.id ? "grabbing" : "grab",
-                filter:
-                  selectedId === component.id ? "url(#selection-glow)" : "none",
-              }}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                startDrag(getSvgMousePosition(e), component);
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {renderComponent(component)}
-            </g>
-          </>
+          <g
+            key={component.id}
+            style={{
+              cursor: draggingId === component.id ? "grabbing" : "grab",
+              filter:
+                selectedId === component.id ? "url(#selection-glow)" : "none",
+            }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              startDrag(getSvgMousePosition(e), component);
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {renderComponent(component)}
+          </g>
         ))}
 
         {/* Render terminal circles */}

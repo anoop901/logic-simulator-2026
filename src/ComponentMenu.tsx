@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Accordion, Card, Separator } from "@heroui/react";
+import { Accordion, Separator, Surface } from "@heroui/react";
 import { ChevronDown } from "@gravity-ui/icons";
 import COMPONENT_MENU_OPTIONS, {
   type ComponentMenuOption,
@@ -24,6 +24,11 @@ export default function ComponentMenu() {
       })
     );
     e.dataTransfer.effectAllowed = "copy";
+    if (option.icon) {
+      const img = new Image();
+      img.src = option.icon;
+      e.dataTransfer.setDragImage(img, img.width / 2, img.height / 2);
+    }
   };
 
   return (
@@ -45,30 +50,24 @@ export default function ComponentMenu() {
                 </Accordion.Trigger>
               </Accordion.Heading>
               <Accordion.Panel>
-                <Accordion.Body className="grid grid-cols-2 gap-2">
-                  {value.map((option) => {
-                    return (
-                      <Card
-                        className="items-center hover:bg-accent active:scale-90 transition cursor-grab"
-                        onDragStart={(e) => handleDragStart(e, option)}
-                        draggable
-                      >
-                        <Card.Header>
-                          <Card.Title>{option.name}</Card.Title>
-                          <Card.Description></Card.Description>
-                        </Card.Header>
-                        {option.icon && (
-                          <Card.Content>
-                            <img
-                              src={option.icon}
-                              alt=""
-                              className="w-12 h-12 object-contain pointer-events-none opacity-90"
-                            />
-                          </Card.Content>
-                        )}
-                      </Card>
-                    );
-                  })}
+                <Accordion.Body className="grid grid-cols-3 gap-2">
+                  {value.map((option, key) => (
+                    <Surface
+                      key={key}
+                      className="relative rounded-3xl  cursor-grab aspect-square  active:scale-90 transition group"
+                      onDragStart={(e) => handleDragStart(e, option)}
+                      draggable
+                    >
+                      <img
+                        src={option.icon}
+                        alt=""
+                        className="absolute inset-0 w-full h-full object-contain pointer-events-none opacity-90 group-hover:blur-sm group-hover:opacity-50 transition"
+                      />
+                      <div className="w-full h-full flex items-center justify-center text-center font-semibold text-transparent group-hover:text-accent-foreground transition">
+                        {option.name}
+                      </div>
+                    </Surface>
+                  ))}
                 </Accordion.Body>
               </Accordion.Panel>
             </Accordion.Item>
