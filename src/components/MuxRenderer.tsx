@@ -1,5 +1,5 @@
 import type { MuxComponentOptions } from "../types/LogicComponent";
-import { getMuxGeometry, TRAPEZOID_INSET } from "./Mux";
+import { getMuxGeometry, TRAPEZOID_INSET } from "./mux";
 
 interface MuxRendererProps {
   x: number;

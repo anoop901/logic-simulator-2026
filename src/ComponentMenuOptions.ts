@@ -220,7 +220,7 @@ const COMPONENT_MENU_OPTIONS: ComponentMenuOption[] = [
   {
     name: "64 KiB RAM",
     category: "Memory",
-    icon: memory64KiBROMIcon,
+    icon: memory64KiBRAMIcon,
     kind: "memory",
     options: { type: "RAM", addressSize: 16, wordSize: 4 },
   },

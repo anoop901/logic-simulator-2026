@@ -3,7 +3,7 @@ import { Accordion, Card, Separator } from "@heroui/react";
 import { ChevronDown } from "@gravity-ui/icons";
 import COMPONENT_MENU_OPTIONS, {
   type ComponentMenuOption,
-} from "./ComponentMenuOptions";
+} from "./componentMenuOptions";
 
 export default function ComponentMenu() {
   const groupedMenuOptions = useMemo(

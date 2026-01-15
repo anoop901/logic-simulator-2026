@@ -1,5 +1,5 @@
 import type { MemoryComponentOptions } from "../types/LogicComponent";
-import { getMemoryGeometry, MEMORY_HEIGHT, MEMORY_WIDTH } from "./Memory";
+import { getMemoryGeometry, MEMORY_HEIGHT, MEMORY_WIDTH } from "./memory";
 
 interface MemoryRendererProps {
   x: number;
