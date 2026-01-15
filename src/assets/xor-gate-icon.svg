@@ -1,11 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 60" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <!-- XOR extra curve at input -->
-  <path d="M 10 10 Q 20 30 10 50"/>
-  <!-- XOR gate body: curved input, pointed output -->
-  <path d="M 15 10 Q 25 30 15 50 Q 40 50 60 30 Q 40 10 15 10"/>
-  <!-- Input lines -->
-  <line x1="5" y1="20" x2="13" y2="20"/>
-  <line x1="5" y1="40" x2="13" y2="40"/>
-  <!-- Output line -->
-  <line x1="60" y1="30" x2="75" y2="30"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-43 -28 78 56" width="78" height="56"><g transform="translate(0, 0)"><path d="M -38 -23 Q -20 0, -38 23" fill="none" stroke="white" stroke-width="2"></path><path d="M -30 -23 Q -12 0, -30 23 Q 0 23, 30 0 Q 0 -23, -30 -23 Z" fill="transparent" stroke="white" stroke-width="2"></path><text x="0" y="0" fill="white" font-size="10" text-anchor="middle" dominant-baseline="middle" font-weight="bold">XOR</text></g></svg>

@@ -1,8 +1,9 @@
 import { useMemo } from "react";
-import COMPONENT_MENU_OPTIONS from "./ComponentMenuOptions";
-import type { ComponentMenuOption } from "./ComponentMenuOptions";
 import { Accordion, Card, Separator } from "@heroui/react";
 import { ChevronDown } from "@gravity-ui/icons";
+import COMPONENT_MENU_OPTIONS, {
+  type ComponentMenuOption,
+} from "./ComponentMenuOptions";
 
 export default function ComponentMenu() {
   const groupedMenuOptions = useMemo(
@@ -45,42 +46,29 @@ export default function ComponentMenu() {
               </Accordion.Heading>
               <Accordion.Panel>
                 <Accordion.Body className="grid grid-cols-2 gap-2">
-                  {value.map((option) => (
-                    <Card
-                      className="border-2 border-transparent hover:border-accent hover:bg-accent items-center active:scale-90 transition"
-                      onDragStart={(e) => handleDragStart(e, option)}
-                      draggable
-                    >
-                      {option.icon && (
-                        <Card.Content>
-                          <img
-                            src={option.icon}
-                            alt=""
-                            className="w-12 h-12 object-contain pointer-events-none opacity-90"
-                          />
-                        </Card.Content>
-                      )}
-                      <Card.Footer className="text-center">
-                        {option.name}
-                      </Card.Footer>
-                    </Card>
-                    // <Card
-                    //   className="flex flex-col items-center justify-center text-center border border-transparent hover:border-accent active:scale-90 transition"
-                    //   onDragStart={(e) => handleDragStart(e, option)}
-                    //   draggable
-                    // >
-                    //   {option.icon && (
-                    //     <img
-                    //       src={option.icon}
-                    //       alt=""
-                    //       className="w-12 h-12 object-contain pointer-events-none opacity-90"
-                    //     />
-                    //   )}
-                    //   <span className="text-sm text-default-600">
-                    //     {option.name}
-                    //   </span>
-                    // </Card>
-                  ))}
+                  {value.map((option) => {
+                    return (
+                      <Card
+                        className="items-center hover:bg-accent active:scale-90 transition cursor-grab"
+                        onDragStart={(e) => handleDragStart(e, option)}
+                        draggable
+                      >
+                        <Card.Header>
+                          <Card.Title>{option.name}</Card.Title>
+                          <Card.Description></Card.Description>
+                        </Card.Header>
+                        {option.icon && (
+                          <Card.Content>
+                            <img
+                              src={option.icon}
+                              alt=""
+                              className="w-12 h-12 object-contain pointer-events-none opacity-90"
+                            />
+                          </Card.Content>
+                        )}
+                      </Card>
+                    );
+                  })}
                 </Accordion.Body>
               </Accordion.Panel>
             </Accordion.Item>
