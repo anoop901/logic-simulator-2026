@@ -1,0 +1,19 @@
+{
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/logic-simulator",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/logic-simulator",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/logic-simulator/:path*",
+      "destination": "/:path*"
+    }
+  ]
+}
