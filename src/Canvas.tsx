@@ -111,6 +111,10 @@ export default function Canvas() {
 
     try {
       const { kind, options } = JSON.parse(data);
+      // Convert value to BigInt for constant components (JSON parses as number)
+      if (kind === "constant" && typeof options.value === "number") {
+        options.value = BigInt(options.value);
+      }
       const newId = addComponent(kind, getSvgMousePosition(e), options);
       select(newId);
     } catch {

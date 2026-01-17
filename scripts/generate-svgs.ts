@@ -4,7 +4,7 @@
  * This script reads component definitions, renders each component using its
  * corresponding renderer, and saves the SVG output to src/assets.
  *
- * Run with: npx tsx scripts/generate-svgs.ts
+ * Run with: npx tsx --tsconfig scripts/tsconfig.json scripts/generate-svgs.ts
  */
 
 import * as fs from "node:fs";
@@ -21,6 +21,7 @@ import DecoderRenderer from "../src/components/DecoderRenderer.js";
 import AdderRenderer from "../src/components/AdderRenderer.js";
 import RegisterRenderer from "../src/components/RegisterRenderer.js";
 import MemoryRenderer from "../src/components/MemoryRenderer.js";
+import ConstantRenderer from "../src/components/ConstantRenderer.js";
 
 import COMPONENT_MENU_OPTIONS, {
   nameToIconFilename,
@@ -35,6 +36,7 @@ import type {
   AdderComponentOptions,
   RegisterComponentOptions,
   MemoryComponentOptions,
+  ConstantComponentOptions,
   ComponentOptions,
 } from "../src/types/LogicComponent.js";
 
@@ -80,6 +82,8 @@ function getComponentDimensions(
     }
     case "memory":
       return { width: 90, height: 80, offsetX: 45, offsetY: 40 };
+    case "constant":
+      return { width: 60, height: 40, offsetX: 30, offsetY: 20 };
     default:
       return { width: 80, height: 60, offsetX: 40, offsetY: 30 };
   }
@@ -132,6 +136,12 @@ function renderComponent(
         x: 0,
         y: 0,
         options: options as MemoryComponentOptions,
+      });
+    case "constant":
+      return React.createElement(ConstantRenderer, {
+        x: 0,
+        y: 0,
+        options: options as ConstantComponentOptions,
       });
     default:
       return null;

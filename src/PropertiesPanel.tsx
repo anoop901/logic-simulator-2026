@@ -9,6 +9,7 @@ import type {
   AdderComponentOptions,
   RegisterComponentOptions,
   MemoryComponentOptions,
+  ConstantComponentOptions,
 } from "./types/LogicComponent";
 import { TrashBin } from "@gravity-ui/icons";
 
@@ -19,6 +20,7 @@ import DecoderEditor from "./editors/DecoderEditor";
 import AdderEditor from "./editors/AdderEditor";
 import RegisterEditor from "./editors/RegisterEditor";
 import MemoryEditor from "./editors/MemoryEditor";
+import ConstantEditor from "./editors/ConstantEditor";
 
 interface PropertiesPanelProps {
   selectedComponent: LogicComponent;
@@ -81,6 +83,13 @@ export default function PropertiesPanel({
         return (
           <MemoryEditor
             options={options as MemoryComponentOptions}
+            onUpdate={onUpdateOptions}
+          />
+        );
+      case "constant":
+        return (
+          <ConstantEditor
+            options={options as ConstantComponentOptions}
             onUpdate={onUpdateOptions}
           />
         );

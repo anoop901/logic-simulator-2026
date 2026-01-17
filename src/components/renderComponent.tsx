@@ -1,5 +1,6 @@
 import type {
   AdderComponentOptions,
+  ConstantComponentOptions,
   DecoderComponentOptions,
   GateComponentOptions,
   LogicComponent,
@@ -9,6 +10,7 @@ import type {
   RegisterComponentOptions,
 } from "../types/LogicComponent";
 import AdderRenderer from "./AdderRenderer";
+import ConstantRenderer from "./ConstantRenderer";
 import DecoderRenderer from "./DecoderRenderer";
 import GateRenderer from "./GateRenderer";
 import MemoryRenderer from "./MemoryRenderer";
@@ -82,6 +84,15 @@ export default function renderComponent(component: LogicComponent) {
           x={position.x}
           y={position.y}
           options={options as MemoryComponentOptions}
+        />
+      );
+    case "constant":
+      return (
+        <ConstantRenderer
+          key={id}
+          x={position.x}
+          y={position.y}
+          options={options as ConstantComponentOptions}
         />
       );
     default:

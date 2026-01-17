@@ -1,5 +1,6 @@
 import type {
   AdderComponentOptions,
+  ConstantComponentOptions,
   DecoderComponentOptions,
   GateComponentOptions,
   LogicComponent,
@@ -10,6 +11,7 @@ import type {
 } from "../types/LogicComponent";
 import type Position from "../types/Position";
 import { terminalInfoOfAdder } from "./adder";
+import { terminalInfoOfConstant } from "./constant";
 import { terminalInfoOfDecoder } from "./decoder";
 import { terminalInfoOfGate } from "./gate";
 import { terminalInfoOfMemory } from "./memory";
@@ -49,6 +51,11 @@ export default function terminalInfoOfComponent(
       );
     case "memory":
       return terminalInfoOfMemory(position, options as MemoryComponentOptions);
+    case "constant":
+      return terminalInfoOfConstant(
+        position,
+        options as ConstantComponentOptions
+      );
     default:
       return [];
   }

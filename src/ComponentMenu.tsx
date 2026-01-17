@@ -4,6 +4,8 @@ import { ChevronDown } from "@gravity-ui/icons";
 import COMPONENT_MENU_OPTIONS, {
   type ComponentMenuOption,
 } from "./componentMenuOptions";
+import { stringifyWithBigInt } from "./utils/jsonBigInt";
+import componentMenuOptionToIcon from "./componentMenuOptionToIcon";
 
 export default function ComponentMenu() {
   const groupedMenuOptions = useMemo(
@@ -18,15 +20,16 @@ export default function ComponentMenu() {
     // Store the component data in the drag event
     e.dataTransfer.setData(
       "application/json",
-      JSON.stringify({
+      stringifyWithBigInt({
         kind: option.kind,
         options: option.options,
       })
     );
     e.dataTransfer.effectAllowed = "copy";
-    if (option.icon) {
+    const icon = componentMenuOptionToIcon(option);
+    if (icon) {
       const img = new Image();
-      img.src = option.icon;
+      img.src = icon;
       e.dataTransfer.setDragImage(img, img.width / 2, img.height / 2);
     }
   };
@@ -51,23 +54,35 @@ export default function ComponentMenu() {
               </Accordion.Heading>
               <Accordion.Panel>
                 <Accordion.Body className="grid grid-cols-3 gap-2">
-                  {value.map((option, key) => (
-                    <Surface
-                      key={key}
-                      className="relative rounded-3xl  cursor-grab aspect-square  active:scale-90 transition group"
-                      onDragStart={(e) => handleDragStart(e, option)}
-                      draggable
-                    >
-                      <img
-                        src={option.icon}
-                        alt=""
-                        className="absolute inset-0 w-full h-full object-contain pointer-events-none opacity-90 group-hover:blur-sm group-hover:opacity-50 transition"
-                      />
-                      <div className="w-full h-full flex items-center justify-center text-center font-semibold text-transparent group-hover:text-accent-foreground transition">
-                        {option.name}
-                      </div>
-                    </Surface>
-                  ))}
+                  {value.map((option, key) => {
+                    const icon = componentMenuOptionToIcon(option);
+                    return (
+                      <Surface
+                        key={key}
+                        className="relative rounded-3xl  cursor-grab aspect-square active:scale-90 transition group"
+                        onDragStart={(e) => handleDragStart(e, option)}
+                        draggable
+                      >
+                        {icon != null && (
+                          <img
+                            src={icon}
+                            alt=""
+                            className="absolute inset-0 w-full h-full object-contain pointer-events-none opacity-90 group-hover:blur-sm group-hover:opacity-50 transition scale-85"
+                          />
+                        )}
+                        <div
+                          className={
+                            "w-full h-full flex items-center justify-center text-center font-semibold transition " +
+                            (icon == null
+                              ? "text-accent-foreground"
+                              : "text-transparent group-hover:text-accent-foreground")
+                          }
+                        >
+                          {option.name}
+                        </div>
+                      </Surface>
+                    );
+                  })}
                 </Accordion.Body>
               </Accordion.Panel>
             </Accordion.Item>
