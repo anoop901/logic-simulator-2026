@@ -1,73 +1,60 @@
-# React + TypeScript + Vite
+# Logic Simulator
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An interactive digital logic circuit simulator. Design and visualize digital circuits with an intuitive drag-and-drop interface.
 
-Currently, two official plugins are available:
+## Usage
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+1. **Add Components**: Drag components from the left sidebar onto the canvas.
+2. **Connect Wires**: Click on a component's output terminal and drag to another component's input terminal to connect them.
+3. **Configure**: Adjust properties in the right panel for the selected component.
+4. **Simulate**: Simulate the circuit to see it working.
+5. **Save/Load**: Save your circuits to files and load them later.
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Available Components
 
-## Expanding the ESLint configuration
+- **Logic Gates**: AND, OR, NOT, NAND, NOR, XOR, XNOR
+- **Constants**: Fixed value sources with configurable bit width and display format
+- **Multiplexers**: Route signals based on selector inputs
+- **Decoders**: Convert binary inputs to one-hot outputs
+- **Adders**: Arithmetic addition with carry
+- **Registers**: Store values on clock edge
+- **Memory**: RAM and ROM with built-in data editor
+- **Bit Splitter/Merger**: Split multi-bit signals or combine single bits
+- **IO Devices**: Input switches, output LEDs, and displays
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+All components can be configured to work with single-bit or multi-bit values.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Simulation
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Once you build a circuit, simulate it. While simulating:
+- Inspect the values output by each component.
+- Interact with I/O devices.
+- Step the clock signal supplied to the sequential elements (registers, memory). Or, set it to run automatically.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Development instructions
+
+### Prerequisites
+
+- **Node.js**
+- **npm** or **pnpm**
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/anoop901/logic-simulator.git
+cd logic-simulator
+
+# Install dependencies
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Start development server
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev
 ```
+
+The app will be available at the URL in the command output.
