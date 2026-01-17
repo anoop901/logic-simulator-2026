@@ -89,3 +89,17 @@ export function formatValue(
     }
   }
 }
+
+/**
+ * Simulate a constant component.
+ * @param options The constant component options
+ * @returns Map of output terminal name to value
+ */
+export function simulateConstant(
+  options: ConstantComponentOptions
+): Map<string, bigint> {
+  const mask = (1n << BigInt(options.bitWidth)) - 1n;
+  const outputs = new Map<string, bigint>();
+  outputs.set("out", options.value & mask);
+  return outputs;
+}

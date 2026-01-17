@@ -83,3 +83,30 @@ export function terminalInfoOfAdder(
     },
   ];
 }
+
+/**
+ * Simulate an adder component.
+ * @param options The adder component options
+ * @param inputs Map of input terminal names to values ("a", "b", "cin")
+ * @returns Map of output terminal names to values ("sum", "cout")
+ */
+export function simulateAdder(
+  options: AdderComponentOptions,
+  inputs: Map<string, bigint>
+): Map<string, bigint> {
+  const { bitWidth } = options;
+  const mask = (1n << BigInt(bitWidth)) - 1n;
+
+  const a = inputs.get("a") ?? 0n;
+  const b = inputs.get("b") ?? 0n;
+  const cin = inputs.get("cin") ?? 0n;
+
+  const total = a + b + (cin & 1n);
+  const sum = total & mask;
+  const cout = (total >> BigInt(bitWidth)) & 1n;
+
+  const outputs = new Map<string, bigint>();
+  outputs.set("sum", sum);
+  outputs.set("cout", cout);
+  return outputs;
+}

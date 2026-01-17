@@ -112,3 +112,50 @@ export function terminalInfoOfGate(
 
   return result;
 }
+
+/**
+ * Simulate a gate component.
+ * @param options The gate component options
+ * @param inputs Map of input terminal names to values ("in0", "in1", ...)
+ * @returns Map of output terminal name to value
+ */
+export function simulateGate(
+  options: GateComponentOptions,
+  inputs: Map<string, bigint>
+): Map<string, bigint> {
+  const { type, numberOfInputs, bitWidth } = options;
+  const mask = (1n << BigInt(bitWidth)) - 1n;
+
+  // Collect input values
+  const inputValues: bigint[] = [];
+  for (let i = 0; i < numberOfInputs; i++) {
+    inputValues.push(inputs.get(`in${i}`) ?? 0n);
+  }
+
+  let result: bigint;
+
+  switch (type) {
+    case "AND":
+      result = inputValues.reduce((acc, val) => acc & val, mask);
+      break;
+    case "OR":
+      result = inputValues.reduce((acc, val) => acc | val, 0n);
+      break;
+    case "NAND":
+      result = ~inputValues.reduce((acc, val) => acc & val, mask) & mask;
+      break;
+    case "NOR":
+      result = ~inputValues.reduce((acc, val) => acc | val, 0n) & mask;
+      break;
+    case "XOR":
+      result = inputValues.reduce((acc, val) => acc ^ val, 0n);
+      break;
+    case "XNOR":
+      result = ~inputValues.reduce((acc, val) => acc ^ val, 0n) & mask;
+      break;
+  }
+
+  const outputs = new Map<string, bigint>();
+  outputs.set("out", result & mask);
+  return outputs;
+}

@@ -81,3 +81,70 @@ export function terminalInfoOfMemory(
 
   return result;
 }
+
+/**
+ * Simulate a memory component (returns value at address).
+ * @param options The memory component options
+ * @param inputs Map of input terminal names to values ("addr")
+ * @param state Memory contents as Uint8Array
+ * @returns Map of output terminal name to value
+ */
+export function simulateMemory(
+  options: MemoryComponentOptions,
+  inputs: Map<string, bigint>,
+  state: Uint8Array
+): Map<string, bigint> {
+  const { wordSize } = options;
+
+  const addr = inputs.get("addr") ?? 0n;
+  const byteAddr = Number(addr) * wordSize;
+
+  // Read wordSize bytes from state
+  let value = 0n;
+  for (let i = 0; i < wordSize && byteAddr + i < state.length; i++) {
+    value |= BigInt(state[byteAddr + i]) << BigInt(i * 8);
+  }
+
+  const outputs = new Map<string, bigint>();
+  outputs.set("out", value);
+  return outputs;
+}
+
+/**
+ * Update RAM state on clock edge if write-enabled.
+ * @param options The memory component options
+ * @param inputs Map of input terminal names to values ("addr", "data", "we")
+ * @param state Memory contents as Uint8Array
+ * @returns New state (or same if ROM or we=0)
+ */
+export function updateMemoryOnClockEdge(
+  options: MemoryComponentOptions,
+  inputs: Map<string, bigint>,
+  state: Uint8Array
+): Uint8Array {
+  const { type, wordSize } = options;
+
+  // ROM cannot be written
+  if (type === "ROM") {
+    return state;
+  }
+
+  const we = inputs.get("we") ?? 0n;
+  if (we === 0n) {
+    return state;
+  }
+
+  const addr = inputs.get("addr") ?? 0n;
+  const data = inputs.get("data") ?? 0n;
+  const byteAddr = Number(addr) * wordSize;
+
+  // Clone state before modifying
+  const newState = new Uint8Array(state);
+
+  // Write wordSize bytes to state
+  for (let i = 0; i < wordSize && byteAddr + i < newState.length; i++) {
+    newState[byteAddr + i] = Number((data >> BigInt(i * 8)) & 0xffn);
+  }
+
+  return newState;
+}

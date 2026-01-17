@@ -51,3 +51,22 @@ export function terminalInfoOfNot(
     },
   ];
 }
+
+/**
+ * Simulate a NOT gate component.
+ * @param options The NOT component options
+ * @param inputs Map of input terminal names to values ("in")
+ * @returns Map of output terminal name to value
+ */
+export function simulateNot(
+  options: NotComponentOptions,
+  inputs: Map<string, bigint>
+): Map<string, bigint> {
+  const { bitWidth } = options;
+  const mask = (1n << BigInt(bitWidth)) - 1n;
+  const input = inputs.get("in") ?? 0n;
+
+  const outputs = new Map<string, bigint>();
+  outputs.set("out", ~input & mask);
+  return outputs;
+}

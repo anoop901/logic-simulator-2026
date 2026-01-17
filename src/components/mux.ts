@@ -78,3 +78,27 @@ export function terminalInfoOfMux(
 
   return result;
 }
+
+/**
+ * Simulate a multiplexer component.
+ * @param options The mux component options
+ * @param inputs Map of input terminal names to values ("in0", "in1", ..., "sel")
+ * @returns Map of output terminal name to value
+ */
+export function simulateMux(
+  options: MuxComponentOptions,
+  inputs: Map<string, bigint>
+): Map<string, bigint> {
+  const { selectBits, bitWidth } = options;
+  const mask = (1n << BigInt(bitWidth)) - 1n;
+  const numInputs = Math.pow(2, selectBits);
+
+  const sel = inputs.get("sel") ?? 0n;
+  const selIndex = Number(sel) % numInputs;
+
+  const selectedInput = inputs.get(`in${selIndex}`) ?? 0n;
+
+  const outputs = new Map<string, bigint>();
+  outputs.set("out", selectedInput & mask);
+  return outputs;
+}

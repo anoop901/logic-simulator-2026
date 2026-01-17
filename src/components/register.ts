@@ -54,3 +54,36 @@ export function terminalInfoOfRegister(
     },
   ];
 }
+
+/**
+ * Simulate a register component (returns current stored value).
+ * @param options The register component options
+ * @param state Current stored value
+ * @returns Map of output terminal name to value
+ */
+export function simulateRegister(
+  options: RegisterComponentOptions,
+  state: bigint
+): Map<string, bigint> {
+  const mask = (1n << BigInt(options.bitWidth)) - 1n;
+  const outputs = new Map<string, bigint>();
+  outputs.set("q", state & mask);
+  return outputs;
+}
+
+/**
+ * Update register state on clock edge.
+ * @param options The register component options
+ * @param inputs Map of input terminal names to values ("d")
+ * @param _state Current stored value (unused, kept for consistency)
+ * @returns New state value
+ */
+export function updateRegisterOnClockEdge(
+  options: RegisterComponentOptions,
+  inputs: Map<string, bigint>,
+  _state: bigint
+): bigint {
+  const mask = (1n << BigInt(options.bitWidth)) - 1n;
+  const d = inputs.get("d") ?? 0n;
+  return d & mask;
+}

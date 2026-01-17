@@ -68,3 +68,26 @@ export function terminalInfoOfDecoder(
 
   return result;
 }
+
+/**
+ * Simulate a decoder component.
+ * @param options The decoder component options
+ * @param inputs Map of input terminal names to values ("in")
+ * @returns Map of output terminal names to values ("out0", "out1", ...)
+ */
+export function simulateDecoder(
+  options: DecoderComponentOptions,
+  inputs: Map<string, bigint>
+): Map<string, bigint> {
+  const { inputBits } = options;
+  const numOutputs = Math.pow(2, inputBits);
+
+  const input = inputs.get("in") ?? 0n;
+  const activeOutput = Number(input) % numOutputs;
+
+  const outputs = new Map<string, bigint>();
+  for (let i = 0; i < numOutputs; i++) {
+    outputs.set(`out${i}`, i === activeOutput ? 1n : 0n);
+  }
+  return outputs;
+}
