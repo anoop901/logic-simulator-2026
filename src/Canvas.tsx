@@ -12,6 +12,8 @@ import useWires from "./hooks/useWires";
 import useComponentDrag from "./hooks/useComponentDrag";
 import useWireDrag from "./hooks/useWireDrag";
 import type Position from "./types/Position";
+import { simulateCircuit } from "./simulation/simulateCircuit";
+import { SIMULATION_VALUE_COLOR } from "./utils/simulationColors";
 
 const MAX_CUBE_BEZIER_ANCHOR_DISTANCE = 50;
 
@@ -86,6 +88,15 @@ export default function Canvas() {
     isTerminalConnected,
     onWireCreated: addWire,
   });
+
+  // Run simulation on every render
+  const simulationResult = useMemo(() => {
+    const emptyState = {
+      registerStates: new Map<string, bigint>(),
+      memoryStates: new Map<string, Uint8Array>(),
+    };
+    return simulateCircuit(components, wires, emptyState);
+  }, [components, wires]);
 
   // Helper to get terminal position by componentId and terminalName
   const getTerminalPosition = (
@@ -256,35 +267,54 @@ export default function Canvas() {
           </g>
         ))}
 
-        {/* Render terminal circles */}
-        {allTerminals.map((terminal) => (
-          <g key={`${terminal.componentId}-${terminal.name}`}>
-            {!isTerminalConnected(terminal.componentId, terminal.name) && (
-              <circle
-                cx={terminal.position.x}
-                cy={terminal.position.y}
-                r={3}
-                fill="white"
-              />
-            )}
-            {/* Invisible larger circle for hit testing */}
-            {(terminal.direction === "in"
-              ? !!wireDrag &&
-                !isTerminalConnected(terminal.componentId, terminal.name)
-              : !wireDrag) && (
-              <circle
-                cx={terminal.position.x}
-                cy={terminal.position.y}
-                r={15}
-                fill="transparent"
-                style={{
-                  cursor:
-                    terminal.direction === "out" ? "crosshair" : "default",
-                }}
-              />
-            )}
-          </g>
-        ))}
+        {/* Render terminal circles and simulation values */}
+        {allTerminals.map((terminal) => {
+          const componentValues = simulationResult.get(terminal.componentId);
+          const value = componentValues?.get(terminal.name);
+
+          return (
+            <g key={`${terminal.componentId}-${terminal.name}`}>
+              {!isTerminalConnected(terminal.componentId, terminal.name) && (
+                <circle
+                  cx={terminal.position.x}
+                  cy={terminal.position.y}
+                  r={3}
+                  fill="white"
+                />
+              )}
+              {/* Invisible larger circle for hit testing */}
+              {(terminal.direction === "in"
+                ? !!wireDrag &&
+                  !isTerminalConnected(terminal.componentId, terminal.name)
+                : !wireDrag) && (
+                <circle
+                  cx={terminal.position.x}
+                  cy={terminal.position.y}
+                  r={15}
+                  fill="transparent"
+                  style={{
+                    cursor:
+                      terminal.direction === "out" ? "crosshair" : "default",
+                  }}
+                />
+              )}
+              {/* Display simulation value for output terminals */}
+              {terminal.direction === "out" && value !== undefined && (
+                <text
+                  x={terminal.position.x + 8}
+                  y={terminal.position.y + 4}
+                  fill={SIMULATION_VALUE_COLOR}
+                  fontSize="12"
+                  fontFamily="monospace"
+                  fontWeight="bold"
+                  style={{ pointerEvents: "none" }}
+                >
+                  {value.toString()}
+                </text>
+              )}
+            </g>
+          );
+        })}
       </svg>
 
       {/* Properties panel */}
