@@ -1,7 +1,7 @@
 import type { ComponentOptions } from "./types/LogicComponent";
 import type { TerminalWithComponent } from "./hooks/useWireDrag";
 
-import { useMemo } from "react";
+import { useMemo, useCallback, useState, useEffect } from "react";
 import PropertiesPanel from "./PropertiesPanel";
 import renderComponent from "./components/renderComponent";
 import terminalInfoOfComponent from "./components/terminalInfoOfComponent";
@@ -12,10 +12,18 @@ import useWires from "./hooks/useWires";
 import useComponentDrag from "./hooks/useComponentDrag";
 import useWireDrag from "./hooks/useWireDrag";
 import type Position from "./types/Position";
-import { simulateCircuit } from "./simulation/simulateCircuit";
+import {
+  type CircuitSimulationResult,
+  initialSimulationResult,
+  simulateCircuit,
+} from "./simulation/simulateCircuit";
 import { SIMULATION_VALUE_COLOR } from "./utils/simulationColors";
+import useSimulationMode from "./hooks/useSimulationMode";
+import useSimulationState from "./hooks/useSimulationState";
+import SimulationToolbar from "./SimulationToolbar";
 
 const MAX_CUBE_BEZIER_ANCHOR_DISTANCE = 50;
+const SIMULATION_SPEED_PROPAGATION_MS = 50;
 
 // Get mouse position relative to SVG element
 function getSvgMousePosition(e: React.MouseEvent<SVGElement>): {
@@ -89,14 +97,51 @@ export default function Canvas() {
     onWireCreated: addWire,
   });
 
-  // Run simulation on every render
-  const simulationResult = useMemo(() => {
-    const emptyState = {
-      registerStates: new Map<string, bigint>(),
-      memoryStates: new Map<string, Uint8Array>(),
-    };
-    return simulateCircuit(components, wires, emptyState);
-  }, [components, wires]);
+  // Simulation state management
+  const {
+    state: simulationState,
+    initializeState,
+    applyClockEdge,
+    resetState,
+  } = useSimulationState(components);
+
+  // Compute simulation result
+  const [simulationResult, setSimulationResult] =
+    useState<CircuitSimulationResult>(new Map());
+
+  // Clock step callback for simulation mode
+  const handleClockStep = useCallback(() => {
+    applyClockEdge(simulationResult);
+  }, [applyClockEdge, simulationResult]);
+
+  // Simulation mode
+  const simulationMode = useSimulationMode({
+    onClockStep: handleClockStep,
+    onStart: initializeState,
+    onStop: resetState,
+  });
+
+  const continuousSimulate = useCallback(() => {
+    setSimulationResult((prevResult) =>
+      simulateCircuit(components, wires, simulationState, prevResult)
+    );
+  }, [components, wires, simulationState]);
+
+  useEffect(() => {
+    if (simulationMode.isSimulating) {
+      const interval = setInterval(
+        continuousSimulate,
+        SIMULATION_SPEED_PROPAGATION_MS
+      );
+      return () => clearInterval(interval);
+    }
+  }, [simulationMode.isSimulating, continuousSimulate]);
+
+  useEffect(() => {
+    if (simulationMode.isSimulating) {
+      setSimulationResult(initialSimulationResult(components));
+    }
+  }, [simulationMode.isSimulating]);
 
   // Helper to get terminal position by componentId and terminalName
   const getTerminalPosition = (
@@ -110,11 +155,13 @@ export default function Canvas() {
   };
 
   const handleDragOver = (e: React.DragEvent<SVGSVGElement>) => {
+    if (simulationMode.isSimulating) return; // Disable during simulation
     e.preventDefault();
     e.dataTransfer.dropEffect = "copy";
   };
 
   const handleDrop = (e: React.DragEvent<SVGSVGElement>) => {
+    if (simulationMode.isSimulating) return; // Disable during simulation
     e.preventDefault();
 
     const data = e.dataTransfer.getData("application/json");
@@ -134,6 +181,7 @@ export default function Canvas() {
   };
 
   const handleCanvasMouseDown = (e: React.MouseEvent<SVGSVGElement>) => {
+    if (simulationMode.isSimulating) return; // Disable wire creation during simulation
     if (tryStartWireDrag(getSvgMousePosition(e))) {
       e.preventDefault();
     }
@@ -167,6 +215,9 @@ export default function Canvas() {
 
   return (
     <div className="grow relative bg-default overflow-hidden canvas-grid">
+      {/* Simulation toolbar */}
+      <SimulationToolbar {...simulationMode} />
+
       <svg
         width="100%"
         height="100%"
@@ -252,11 +303,16 @@ export default function Canvas() {
           <g
             key={component.id}
             style={{
-              cursor: draggingId === component.id ? "grabbing" : "grab",
+              cursor: simulationMode.isSimulating
+                ? "default"
+                : draggingId === component.id
+                ? "grabbing"
+                : "grab",
               filter:
                 selectedId === component.id ? "url(#selection-glow)" : "none",
             }}
             onMouseDown={(e) => {
+              if (simulationMode.isSimulating) return; // Disable during simulation
               e.preventDefault();
               e.stopPropagation();
               startDrag(getSvgMousePosition(e), component);
@@ -299,26 +355,28 @@ export default function Canvas() {
                 />
               )}
               {/* Display simulation value for output terminals */}
-              {terminal.direction === "out" && value !== undefined && (
-                <text
-                  x={terminal.position.x + 8}
-                  y={terminal.position.y + 4}
-                  fill={SIMULATION_VALUE_COLOR}
-                  fontSize="12"
-                  fontFamily="monospace"
-                  fontWeight="bold"
-                  style={{ pointerEvents: "none" }}
-                >
-                  {value.toString()}
-                </text>
-              )}
+              {simulationMode.isSimulating &&
+                terminal.direction === "out" &&
+                value !== undefined && (
+                  <text
+                    x={terminal.position.x + 8}
+                    y={terminal.position.y + 4}
+                    fill={SIMULATION_VALUE_COLOR}
+                    fontSize="12"
+                    fontFamily="monospace"
+                    fontWeight="bold"
+                    style={{ pointerEvents: "none" }}
+                  >
+                    {value.toString()}
+                  </text>
+                )}
             </g>
           );
         })}
       </svg>
 
-      {/* Properties panel */}
-      {selectedComponent && (
+      {/* Properties panel - hidden during simulation */}
+      {selectedComponent && !simulationMode.isSimulating && (
         <PropertiesPanel
           selectedComponent={selectedComponent}
           onUpdateOptions={(newOptions: ComponentOptions) => {

@@ -8,6 +8,20 @@ import terminalInfoOfComponent from "../components/terminalInfoOfComponent";
  */
 export type CircuitSimulationResult = Map<string, Map<string, bigint>>;
 
+export function initialSimulationResult(components: LogicComponent[]) {
+  return new Map(
+    components.map((component) => [
+      component.id,
+      new Map(
+        terminalInfoOfComponent(component).map((terminal) => [
+          terminal.name,
+          0n,
+        ])
+      ),
+    ])
+  );
+}
+
 /**
  * Simulate the entire circuit.
  * Propagates values from outputs through wires to inputs until stable.
@@ -19,82 +33,69 @@ export type CircuitSimulationResult = Map<string, Map<string, bigint>>;
 export function simulateCircuit(
   components: LogicComponent[],
   wires: Wire[],
-  state: ComponentState
+  state: ComponentState,
+  prevResult: CircuitSimulationResult | null
 ): CircuitSimulationResult {
-  // Build component lookup
-  const componentById = new Map<string, LogicComponent>();
-  for (const component of components) {
-    componentById.set(component.id, component);
-  }
-
-  // Build wire lookup: for each input terminal, which output drives it
-  // Key: "componentId-terminalName" of input terminal
-  // Value: { componentId, terminalName } of the output terminal
-  const inputToOutputWire = new Map<
-    string,
-    { componentId: string; terminalName: string }
-  >();
-  for (const wire of wires) {
-    const key = `${wire.to.componentId}-${wire.to.terminalName}`;
-    inputToOutputWire.set(key, wire.from);
-  }
+  const wiresByInputTerminal = new Map(
+    wires.map((wire) => [
+      `${wire.to.componentId}-${wire.to.terminalName}`,
+      wire,
+    ])
+  );
 
   // Terminal values: componentId -> (terminalName -> value)
-  const terminalValues: CircuitSimulationResult = new Map();
+  const terminalValues: CircuitSimulationResult =
+    prevResult ?? initialSimulationResult(components);
 
-  // Initialize all terminals to 0
+  // Deep copy the terminal values
+  const newTerminalValues: CircuitSimulationResult = new Map(
+    Array.from(terminalValues.entries()).map(([componentId, terminals]) => [
+      componentId,
+      new Map(terminals),
+    ])
+  );
+
   for (const component of components) {
-    const terminals = terminalInfoOfComponent(component);
-    const componentTerminals = new Map<string, bigint>();
-    for (const terminal of terminals) {
-      componentTerminals.set(terminal.name, 0n);
-    }
-    terminalValues.set(component.id, componentTerminals);
-  }
+    // Gather input values for this component from connected wires
+    const componentTerminals = terminalInfoOfComponent(component);
+    const inputs = new Map<string, bigint>();
 
-  // Iteratively propagate values until stable (or max iterations)
-  const MAX_ITERATIONS = 100;
-  for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
-    let changed = false;
-
-    for (const component of components) {
-      // Gather input values from connected wires
-      const inputs = new Map<string, bigint>();
-      const terminals = terminalInfoOfComponent(component);
-
-      for (const terminal of terminals) {
-        if (terminal.direction === "in") {
-          const key = `${component.id}-${terminal.name}`;
-          const source = inputToOutputWire.get(key);
-          if (source) {
-            const sourceTerminals = terminalValues.get(source.componentId);
-            const value = sourceTerminals?.get(source.terminalName) ?? 0n;
-            inputs.set(terminal.name, value);
-          } else {
-            inputs.set(terminal.name, 0n);
-          }
-        }
-      }
-
-      // Simulate component
-      const outputs = simulateComponent(component, inputs, state);
-
-      // Update output terminal values
-      const componentTerminals = terminalValues.get(component.id)!;
-      for (const [terminalName, value] of outputs) {
-        const oldValue = componentTerminals.get(terminalName);
-        if (oldValue !== value) {
-          componentTerminals.set(terminalName, value);
-          changed = true;
+    for (const terminal of componentTerminals) {
+      if (terminal.direction === "in") {
+        // Look up the wire connected to this input terminal
+        const wireKey = `${component.id}-${terminal.name}`;
+        const wire = wiresByInputTerminal.get(wireKey);
+        if (wire) {
+          // Get the value from the source terminal
+          const sourceValue =
+            terminalValues
+              .get(wire.from.componentId)
+              ?.get(wire.from.terminalName) ?? 0n;
+          inputs.set(terminal.name, sourceValue);
+        } else {
+          // No wire connected, default to 0
+          inputs.set(terminal.name, 0n);
         }
       }
     }
 
-    // If nothing changed, circuit is stable
-    if (!changed) {
-      break;
+    // Store input terminal values
+    for (const [terminalName, inputValue] of inputs) {
+      newTerminalValues.get(component.id)?.set(terminalName, inputValue);
+    }
+
+    // Simulate the component to get output values
+    const outputs = simulateComponent(component, inputs, state);
+
+    // Update output terminal values if they changed
+    for (const [terminalName, outputValue] of outputs) {
+      const currentValue =
+        terminalValues.get(component.id)?.get(terminalName) ?? 0n;
+      if (outputValue !== currentValue) {
+        newTerminalValues.get(component.id)?.set(terminalName, outputValue);
+      }
     }
   }
 
-  return terminalValues;
+  return newTerminalValues;
 }
