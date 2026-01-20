@@ -85,6 +85,7 @@ function main() {
         } ${dims.height + padding * 2}`,
         width: dims.width + padding * 2,
         height: dims.height + padding * 2,
+        style: { fontFamily: "sans-serif" },
       },
       renderedComponent,
     );
