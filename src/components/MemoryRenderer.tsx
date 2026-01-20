@@ -1,5 +1,5 @@
 import type { MemoryComponentOptions } from "../types/LogicComponent";
-import { getMemoryGeometry, MEMORY_HEIGHT, MEMORY_WIDTH } from "./memory";
+import { getMemoryGeometry } from "./memory";
 
 interface MemoryRendererProps {
   x: number;
@@ -19,27 +19,36 @@ export default function MemoryRenderer({ x, y, options }: MemoryRendererProps) {
     return `${bytes}B`;
   };
 
+  // Generate internal line positions
+  const internalLineYPositions = Array.from(
+    { length: geo.internalLineCount },
+    (_, i) =>
+      geo.topY +
+      geo.internalLineOffsetStart +
+      (i + 1) * geo.internalLineSpacing,
+  );
+
   return (
     <g transform={`translate(${x}, ${y})`}>
       {/* Memory body (rectangle) */}
       <rect
         x={geo.leftX}
         y={geo.topY}
-        width={MEMORY_WIDTH}
-        height={MEMORY_HEIGHT}
+        width={geo.width}
+        height={geo.height}
         fill="transparent"
         stroke="white"
         strokeWidth="2"
       />
 
       {/* Internal lines to represent memory cells */}
-      {[1, 2, 3].map((i) => (
+      {internalLineYPositions.map((lineY, i) => (
         <line
           key={i}
           x1={geo.leftX + 20}
-          y1={geo.topY + 15 + i * 12}
+          y1={lineY}
           x2={geo.rightX - 20}
-          y2={geo.topY + 15 + i * 12}
+          y2={lineY}
           stroke="white"
           strokeWidth="1"
           strokeOpacity="0.5"
@@ -87,7 +96,7 @@ export default function MemoryRenderer({ x, y, options }: MemoryRendererProps) {
       {/* Data output label */}
       <text
         x={geo.rightX - 3}
-        y={0}
+        y={geo.centerY}
         fill="white"
         fontSize="8"
         textAnchor="end"
@@ -98,7 +107,7 @@ export default function MemoryRenderer({ x, y, options }: MemoryRendererProps) {
 
       {/* Type label with size */}
       <text
-        x={0}
+        x={geo.centerX}
         y={geo.topY + 12}
         fill="white"
         fontSize="10"

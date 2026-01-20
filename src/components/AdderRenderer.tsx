@@ -10,17 +10,19 @@ interface AdderRendererProps {
 export default function AdderRenderer({ x, y }: AdderRendererProps) {
   const geo = getAdderGeometry();
 
-  // ALU-style path in center-origin coordinates
-  const path = `
-    M ${geo.leftX} ${geo.topY} 
-    L ${geo.rightX} ${geo.topY + TRAPEZOID_INSET} 
-    L ${geo.rightX} ${geo.bottomY - TRAPEZOID_INSET} 
-    L ${geo.leftX} ${geo.bottomY} 
-    L ${geo.leftX} ${NOTCH_DEPTH} 
-    L ${geo.leftX + NOTCH_DEPTH} 0 
-    L ${geo.leftX} ${-NOTCH_DEPTH} 
-    Z
-  `;
+  // ALU-style path
+  const path =
+    `M ${geo.leftX} ${geo.topY} ` +
+    `L ${geo.rightX} ${geo.topY + TRAPEZOID_INSET} ` +
+    `L ${geo.rightX} ${geo.bottomY - TRAPEZOID_INSET} ` +
+    `L ${geo.leftX} ${geo.bottomY} ` +
+    `L ${geo.leftX} ${NOTCH_DEPTH} ` +
+    `L ${geo.leftX + NOTCH_DEPTH} ${geo.centerY} ` +
+    `L ${geo.leftX} ${-NOTCH_DEPTH} ` +
+    `Z`;
+
+  // Label position: offset from center due to notch
+  const labelX = geo.centerX + NOTCH_DEPTH / 2;
 
   return (
     <g transform={`translate(${x}, ${y})`}>
@@ -53,7 +55,7 @@ export default function AdderRenderer({ x, y }: AdderRendererProps) {
 
       {/* Carry in label */}
       <text
-        x={0}
+        x={geo.centerX}
         y={geo.topY + TRAPEZOID_INSET / 2 + 3}
         fill="white"
         fontSize="8"
@@ -65,7 +67,7 @@ export default function AdderRenderer({ x, y }: AdderRendererProps) {
 
       {/* Carry out label */}
       <text
-        x={0}
+        x={geo.centerX}
         y={geo.bottomY - TRAPEZOID_INSET / 2 - 3}
         fill="white"
         fontSize="8"
@@ -76,8 +78,8 @@ export default function AdderRenderer({ x, y }: AdderRendererProps) {
 
       {/* Label */}
       <text
-        x={NOTCH_DEPTH / 2}
-        y={0}
+        x={labelX}
+        y={geo.centerY}
         fill="white"
         fontSize="10"
         textAnchor="middle"

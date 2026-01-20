@@ -23,21 +23,22 @@ export function getDecoderGeometry(inputBits: number) {
 
   return {
     numOutputs,
-    height,
-    halfW,
-    halfH,
     outputYPositions,
-    // Key positions
+    // Standard geometry
     leftX: -halfW,
     rightX: halfW,
     topY: -halfH,
     bottomY: halfH,
+    width: DECODER_WIDTH,
+    height,
+    centerX: 0,
+    centerY: 0,
   };
 }
 
 export function terminalInfoOfDecoder(
   position: Position,
-  options: DecoderComponentOptions
+  options: DecoderComponentOptions,
 ): TerminalInfo[] {
   const { inputBits } = options;
   const geo = getDecoderGeometry(inputBits);
@@ -77,7 +78,7 @@ export function terminalInfoOfDecoder(
  */
 export function simulateDecoder(
   options: DecoderComponentOptions,
-  inputs: Map<string, bigint>
+  inputs: Map<string, bigint>,
 ): Map<string, bigint> {
   const { inputBits } = options;
   const numOutputs = Math.pow(2, inputBits);

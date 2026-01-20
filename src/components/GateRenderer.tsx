@@ -18,31 +18,41 @@ interface GateRendererProps {
 // Draw the gate body shape based on type (center-origin coordinates)
 function getGatePath(
   type: GateType,
-  halfW: number,
-  halfH: number,
-  curveStartX: number
+  geo: ReturnType<typeof getGateGeometry>,
 ): string {
-  const width = halfW * 2;
-
   switch (type) {
     case "AND":
     case "NAND":
       // Flat left, curved right
-      return `M ${-halfW} ${-halfH} L ${curveStartX} ${-halfH} Q ${halfW} ${-halfH}, ${halfW} 0 Q ${halfW} ${halfH}, ${curveStartX} ${halfH} L ${-halfW} ${halfH} Z`;
+      return (
+        `M ${geo.bodyLeftX} ${geo.bodyTopY} ` +
+        `L ${geo.curveStartX} ${geo.bodyTopY} ` +
+        `Q ${geo.bodyRightX} ${geo.bodyTopY}, ` +
+        `${geo.bodyRightX} ${geo.centerY} ` +
+        `Q ${geo.bodyRightX} ${geo.bodyBottomY}, ` +
+        `${geo.curveStartX} ${geo.bodyBottomY} ` +
+        `L ${geo.bodyLeftX} ${geo.bodyBottomY} ` +
+        `Z`
+      );
 
     case "OR":
     case "NOR":
     case "XOR":
     case "XNOR":
       // Curved left, pointed right
-      return `M ${-halfW} ${-halfH} Q ${
-        width * OR_CURVATURE - halfW
-      } 0, ${-halfW} ${halfH} Q ${width * 0.5 - halfW} ${halfH}, ${halfW} 0 Q ${
-        width * 0.5 - halfW
-      } ${-halfH}, ${-halfW} ${-halfH} Z`;
+      return (
+        `M ${geo.bodyLeftX} ${geo.bodyTopY} ` +
+        `Q ${geo.bodyLeftX + geo.bodyWidth * OR_CURVATURE} ${geo.centerY}, ` +
+        `${geo.bodyLeftX} ${geo.bodyBottomY} ` +
+        `Q ${geo.centerX} ${geo.bodyBottomY}, ` +
+        `${geo.bodyRightX} ${geo.centerY} ` +
+        `Q ${geo.centerX} ${geo.bodyTopY}, ` +
+        `${geo.bodyLeftX} ${geo.bodyTopY} ` +
+        `Z`
+      );
 
     default:
-      return `M ${-halfW} ${-halfH} L ${halfW} ${-halfH} L ${halfW} ${halfH} L ${-halfW} ${halfH} Z`;
+      return `M ${geo.bodyLeftX} ${geo.bodyTopY} L ${geo.bodyRightX} ${geo.bodyTopY} L ${geo.bodyRightX} ${geo.bodyBottomY} L ${geo.bodyLeftX} ${geo.bodyBottomY} Z`;
   }
 }
 
@@ -55,9 +65,13 @@ export default function GateRenderer({ x, y, options }: GateRendererProps) {
       {/* XOR extra curve */}
       {hasXorCurve(type) && (
         <path
-          d={`M ${geo.leftX - XOR_CURVE_OFFSET} ${geo.topY} Q ${
-            GATE_WIDTH * OR_CURVATURE - geo.halfW - XOR_CURVE_OFFSET
-          } 0, ${geo.leftX - XOR_CURVE_OFFSET} ${geo.bottomY}`}
+          d={
+            `M ${geo.bodyLeftX - XOR_CURVE_OFFSET} ${geo.bodyTopY} ` +
+            `Q ${
+              geo.bodyLeftX + GATE_WIDTH * OR_CURVATURE - XOR_CURVE_OFFSET
+            } ${geo.centerY}, ` +
+            `${geo.bodyLeftX - XOR_CURVE_OFFSET} ${geo.bodyBottomY}`
+          }
           fill="none"
           stroke="white"
           strokeWidth="2"
@@ -66,7 +80,7 @@ export default function GateRenderer({ x, y, options }: GateRendererProps) {
 
       {/* Gate body */}
       <path
-        d={getGatePath(type, geo.halfW, geo.halfH, geo.curveStartX)}
+        d={getGatePath(type, geo)}
         fill="transparent"
         stroke="white"
         strokeWidth="2"
@@ -75,8 +89,8 @@ export default function GateRenderer({ x, y, options }: GateRendererProps) {
       {/* Inversion bubble */}
       {hasInversionBubble(type) && (
         <circle
-          cx={geo.rightX + BUBBLE_RADIUS}
-          cy={0}
+          cx={geo.bubbleCenterX}
+          cy={geo.bubbleCenterY}
           r={BUBBLE_RADIUS}
           fill="none"
           stroke="white"
@@ -86,8 +100,8 @@ export default function GateRenderer({ x, y, options }: GateRendererProps) {
 
       {/* Gate type label */}
       <text
-        x={0}
-        y={0}
+        x={geo.centerX}
+        y={geo.centerY}
         fill="white"
         fontSize="10"
         textAnchor="middle"

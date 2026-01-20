@@ -17,21 +17,23 @@ export function getAdderGeometry() {
   const inputBY = halfH - (ADDER_HEIGHT - NOTCH_DEPTH * 2) / 4;
 
   return {
-    halfW,
-    halfH,
     inputAY,
     inputBY,
-    // Key positions
+    // Standard geometry
     leftX: -halfW,
     rightX: halfW,
     topY: -halfH,
     bottomY: halfH,
+    width: ADDER_WIDTH,
+    height: ADDER_HEIGHT,
+    centerX: 0,
+    centerY: 0,
   };
 }
 
 export function terminalInfoOfAdder(
   position: Position,
-  _options: AdderComponentOptions
+  _options: AdderComponentOptions,
 ): TerminalInfo[] {
   const geo = getAdderGeometry();
 
@@ -92,7 +94,7 @@ export function terminalInfoOfAdder(
  */
 export function simulateAdder(
   options: AdderComponentOptions,
-  inputs: Map<string, bigint>
+  inputs: Map<string, bigint>,
 ): Map<string, bigint> {
   const { bitWidth } = options;
   const mask = (1n << BigInt(bitWidth)) - 1n;

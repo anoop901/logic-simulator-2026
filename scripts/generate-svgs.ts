@@ -18,7 +18,7 @@ import COMPONENT_MENU_OPTIONS, {
 } from "../src/componentMenuOptions.js";
 
 import renderComponent from "../src/components/renderComponent.js";
-import visitComponent from "../src/components/visitComponent.js";
+import getComponentGeometry from "../src/components/getComponentGeometry.js";
 import type { LogicComponent } from "../src/types/LogicComponent.js";
 
 type Dimensions = {
@@ -30,46 +30,13 @@ type Dimensions = {
 
 // Get component dimensions for viewBox calculation
 function getComponentDimensions(component: LogicComponent): Dimensions {
-  return visitComponent(component, {
-    visitGate(opts) {
-      const height = opts.numberOfInputs * 15 + 16;
-      const hasInversion =
-        opts.type === "NAND" || opts.type === "NOR" || opts.type === "XNOR";
-      const hasXor = opts.type === "XOR" || opts.type === "XNOR";
-      return {
-        width: 60 + (hasInversion ? 10 : 0) + (hasXor ? 8 : 0),
-        height,
-        offsetX: 30 + (hasXor ? 8 : 0),
-        offsetY: height / 2,
-      };
-    },
-    visitNot() {
-      return { width: 60, height: 40, offsetX: 25, offsetY: 20 };
-    },
-    visitMux(opts) {
-      const numInputs = Math.pow(2, opts.selectBits);
-      const height = Math.max(50, numInputs * 15 + 20);
-      return { width: 60, height, offsetX: 30, offsetY: height / 2 };
-    },
-    visitDecoder(opts) {
-      const numOutputs = Math.pow(2, opts.inputBits);
-      const height = Math.max(50, numOutputs * 15 + 20);
-      return { width: 60, height, offsetX: 30, offsetY: height / 2 };
-    },
-    visitAdder() {
-      return { width: 50, height: 110, offsetX: 25, offsetY: 55 };
-    },
-    visitRegister(opts) {
-      const width = opts.bitWidth > 1 ? 90 : 60;
-      return { width, height: 50, offsetX: width / 2, offsetY: 25 };
-    },
-    visitMemory() {
-      return { width: 90, height: 80, offsetX: 45, offsetY: 40 };
-    },
-    visitConstant() {
-      return { width: 60, height: 40, offsetX: 30, offsetY: 20 };
-    },
-  });
+  const geo = getComponentGeometry(component);
+  return {
+    width: geo.width,
+    height: geo.height,
+    offsetX: -geo.leftX,
+    offsetY: -geo.topY,
+  };
 }
 
 // Main function

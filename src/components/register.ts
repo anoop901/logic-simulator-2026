@@ -4,7 +4,11 @@ import type Position from "../types/Position";
 
 const REGISTER_WIDTH_SINGLE_BIT = 50;
 const REGISTER_WIDTH_MULTIBIT = 80;
-export const REGISTER_HEIGHT = 40;
+const REGISTER_HEIGHT = 40;
+
+// Clock triangle dimensions
+const CLOCK_TRIANGLE_HALF_WIDTH = 5;
+const CLOCK_TRIANGLE_HEIGHT = 8;
 
 // Shared coordinate calculations (center-origin)
 export function getRegisterGeometry(bitWidth: number) {
@@ -14,22 +18,26 @@ export function getRegisterGeometry(bitWidth: number) {
   const halfH = REGISTER_HEIGHT / 2;
 
   return {
-    width,
-    halfW,
-    halfH,
     multiBit,
     bitWidth,
-    // Key positions
+    // Standard geometry
     leftX: -halfW,
     rightX: halfW,
     topY: -halfH,
     bottomY: halfH,
+    width,
+    height: REGISTER_HEIGHT,
+    centerX: 0,
+    centerY: 0,
+    // Clock triangle dimensions
+    clockTriangleHalfWidth: CLOCK_TRIANGLE_HALF_WIDTH,
+    clockTriangleHeight: CLOCK_TRIANGLE_HEIGHT,
   };
 }
 
 export function terminalInfoOfRegister(
   position: Position,
-  options: RegisterComponentOptions
+  options: RegisterComponentOptions,
 ): TerminalInfo[] {
   const geo = getRegisterGeometry(options.bitWidth);
 
@@ -63,7 +71,7 @@ export function terminalInfoOfRegister(
  */
 export function simulateRegister(
   options: RegisterComponentOptions,
-  state: bigint
+  state: bigint,
 ): Map<string, bigint> {
   const mask = (1n << BigInt(options.bitWidth)) - 1n;
   const outputs = new Map<string, bigint>();
@@ -81,7 +89,7 @@ export function simulateRegister(
 export function updateRegisterOnClockEdge(
   options: RegisterComponentOptions,
   inputs: Map<string, bigint>,
-  _state: bigint
+  _state: bigint,
 ): bigint {
   const mask = (1n << BigInt(options.bitWidth)) - 1n;
   const d = inputs.get("d") ?? 0n;

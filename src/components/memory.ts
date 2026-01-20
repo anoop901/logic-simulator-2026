@@ -5,6 +5,11 @@ import type Position from "../types/Position";
 export const MEMORY_WIDTH = 80;
 export const MEMORY_HEIGHT = 70;
 
+// Internal line spacing constants
+const INTERNAL_LINE_OFFSET_START = 15;
+const INTERNAL_LINE_SPACING = 12;
+const INTERNAL_LINE_COUNT = 3;
+
 // Shared coordinate calculations (center-origin)
 export function getMemoryGeometry() {
   const halfW = MEMORY_WIDTH / 2;
@@ -16,22 +21,28 @@ export function getMemoryGeometry() {
   const weY = halfH - 15;
 
   return {
-    halfW,
-    halfH,
     addrY,
     dataY,
     weY,
-    // Key positions
+    // Standard geometry
     leftX: -halfW,
     rightX: halfW,
     topY: -halfH,
     bottomY: halfH,
+    width: MEMORY_WIDTH,
+    height: MEMORY_HEIGHT,
+    centerX: 0,
+    centerY: 0,
+    // Internal lines
+    internalLineOffsetStart: INTERNAL_LINE_OFFSET_START,
+    internalLineSpacing: INTERNAL_LINE_SPACING,
+    internalLineCount: INTERNAL_LINE_COUNT,
   };
 }
 
 export function terminalInfoOfMemory(
   position: Position,
-  options: MemoryComponentOptions
+  options: MemoryComponentOptions,
 ): TerminalInfo[] {
   const { type } = options;
   const geo = getMemoryGeometry();
@@ -92,7 +103,7 @@ export function terminalInfoOfMemory(
 export function simulateMemory(
   options: MemoryComponentOptions,
   inputs: Map<string, bigint>,
-  state: Uint8Array
+  state: Uint8Array,
 ): Map<string, bigint> {
   const { wordSize } = options;
 
@@ -120,7 +131,7 @@ export function simulateMemory(
 export function updateMemoryOnClockEdge(
   options: MemoryComponentOptions,
   inputs: Map<string, bigint>,
-  state: Uint8Array
+  state: Uint8Array,
 ): Uint8Array {
   const { type, wordSize } = options;
 

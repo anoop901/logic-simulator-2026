@@ -18,15 +18,15 @@ export default function ConstantRenderer({
   const displayValue = formatValue(
     options.value,
     options.bitWidth,
-    options.displayFormat
+    options.displayFormat,
   );
 
   return (
     <g transform={`translate(${x}, ${y})`}>
       {/* Rounded rectangle body */}
       <rect
-        x={geo.left}
-        y={geo.top}
+        x={geo.leftX}
+        y={geo.topY}
         width={geo.width}
         height={geo.height}
         rx={CONSTANT_RADIUS}
@@ -38,8 +38,8 @@ export default function ConstantRenderer({
 
       {/* Value label */}
       <text
-        x={0}
-        y={0}
+        x={geo.centerX}
+        y={geo.centerY}
         fill="white"
         fontSize="12"
         textAnchor="middle"

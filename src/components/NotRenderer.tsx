@@ -1,6 +1,6 @@
 import type { NotComponentOptions } from "../types/LogicComponent";
 import { BUBBLE_RADIUS } from "./gate";
-import { getNotGeometry, NOT_TRIANGLE_WIDTH } from "./not";
+import { getNotGeometry } from "./not";
 
 interface NotRendererProps {
   x: number;
@@ -12,7 +12,11 @@ export default function NotRenderer({ x, y }: NotRendererProps) {
   const geo = getNotGeometry();
 
   // Triangle path in center-origin coordinates
-  const trianglePath = `M ${geo.triangleLeftX} ${geo.triangleTopY} L ${geo.triangleRightX} 0 L ${geo.triangleLeftX} ${geo.triangleBottomY} Z`;
+  const trianglePath = `M ${geo.triangleLeftX} ${geo.triangleTopY} L ${geo.triangleRightX} ${geo.centerY} L ${geo.triangleLeftX} ${geo.triangleBottomY} Z`;
+
+  // Label position: 1/3 from left edge of triangle
+  const labelX =
+    geo.triangleLeftX + (geo.triangleRightX - geo.triangleLeftX) / 3;
 
   return (
     <g transform={`translate(${x}, ${y})`}>
@@ -27,7 +31,7 @@ export default function NotRenderer({ x, y }: NotRendererProps) {
       {/* Inversion bubble */}
       <circle
         cx={geo.bubbleX}
-        cy={0}
+        cy={geo.centerY}
         r={BUBBLE_RADIUS}
         fill="none"
         stroke="white"
@@ -36,8 +40,8 @@ export default function NotRenderer({ x, y }: NotRendererProps) {
 
       {/* Label */}
       <text
-        x={geo.triangleLeftX + NOT_TRIANGLE_WIDTH / 3}
-        y={0}
+        x={labelX}
+        y={geo.centerY}
         fill="white"
         fontSize="10"
         textAnchor="middle"

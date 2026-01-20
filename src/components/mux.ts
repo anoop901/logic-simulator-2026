@@ -23,21 +23,22 @@ export function getMuxGeometry(selectBits: number) {
 
   return {
     numInputs,
-    height,
-    halfW,
-    halfH,
     inputYPositions,
-    // Key positions
+    // Standard geometry
     leftX: -halfW,
     rightX: halfW,
     topY: -halfH,
     bottomY: halfH,
+    width: MUX_WIDTH,
+    height,
+    centerX: 0,
+    centerY: 0,
   };
 }
 
 export function terminalInfoOfMux(
   position: Position,
-  options: MuxComponentOptions
+  options: MuxComponentOptions,
 ): TerminalInfo[] {
   const { selectBits } = options;
   const geo = getMuxGeometry(selectBits);
@@ -87,7 +88,7 @@ export function terminalInfoOfMux(
  */
 export function simulateMux(
   options: MuxComponentOptions,
-  inputs: Map<string, bigint>
+  inputs: Map<string, bigint>,
 ): Map<string, bigint> {
   const { selectBits, bitWidth } = options;
   const mask = (1n << BigInt(bitWidth)) - 1n;

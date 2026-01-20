@@ -16,11 +16,12 @@ export default function DecoderRenderer({
   const geo = getDecoderGeometry(inputBits);
 
   // Trapezoid path in center-origin coordinates (wider on output side)
-  const path = `M ${geo.leftX} ${geo.topY + TRAPEZOID_INSET} L ${geo.rightX} ${
-    geo.topY
-  } L ${geo.rightX} ${geo.bottomY} L ${geo.leftX} ${
-    geo.bottomY - TRAPEZOID_INSET
-  } Z`;
+  const path =
+    `M ${geo.leftX} ${geo.topY + TRAPEZOID_INSET} ` +
+    `L ${geo.rightX} ${geo.topY} ` +
+    `L ${geo.rightX} ${geo.bottomY} ` +
+    `L ${geo.leftX} ${geo.bottomY - TRAPEZOID_INSET} ` +
+    `Z`;
 
   return (
     <g transform={`translate(${x}, ${y})`}>
@@ -44,8 +45,8 @@ export default function DecoderRenderer({
 
       {/* Label */}
       <text
-        x={0}
-        y={3}
+        x={geo.centerX}
+        y={geo.centerY}
         fill="white"
         fontSize="10"
         textAnchor="middle"

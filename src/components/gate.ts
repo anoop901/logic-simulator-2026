@@ -4,6 +4,7 @@ import type Position from "../types/Position";
 
 export const GATE_WIDTH = 60;
 const INPUT_SPACING = 15;
+const GATE_VERTICAL_PADDING = 16;
 
 export const OR_CURVATURE = 0.3;
 export const XOR_CURVE_OFFSET = 8;
@@ -35,9 +36,9 @@ function getLeftCurveXOffset(inputY: number, halfH: number): number {
 
 // Shared coordinate calculations (center-origin)
 export function getGateGeometry(type: GateType, numberOfInputs: number) {
-  const height = numberOfInputs * INPUT_SPACING + 16;
+  const bodyHeight = numberOfInputs * INPUT_SPACING + GATE_VERTICAL_PADDING;
   const halfW = GATE_WIDTH / 2;
-  const halfH = height / 2;
+  const halfH = bodyHeight / 2;
 
   // Calculate input Y positions relative to center
   const totalInputHeight = (numberOfInputs - 1) * INPUT_SPACING;
@@ -59,29 +60,44 @@ export function getGateGeometry(type: GateType, numberOfInputs: number) {
     inputXPositions.push(xOffset);
   }
 
+  const xorOffset = hasXorCurve(type) ? XOR_CURVE_OFFSET : 0;
   const bubbleOffset = hasInversionBubble(type) ? BUBBLE_RADIUS * 2 : 0;
 
   const curveStartX = halfW - CURVE_PROPORTION * GATE_WIDTH;
 
   return {
-    height,
-    halfW,
-    halfH,
-    inputYPositions,
-    inputXPositions,
-    // Key positions
-    leftX: -halfW,
-    rightX: halfW,
+    // Gate body measurements (excluding XOR curve and bubble)
+    bodyWidth: GATE_WIDTH,
+    bodyHeight,
+    bodyLeftX: -halfW,
+    bodyRightX: halfW,
+    bodyTopY: -halfH,
+    bodyBottomY: halfH,
+
+    // Full component bounding box (includes all visual parts)
+    leftX: -halfW - xorOffset,
+    rightX: halfW + bubbleOffset,
     topY: -halfH,
     bottomY: halfH,
+    width: GATE_WIDTH + xorOffset + bubbleOffset,
+    height: bodyHeight,
+
+    // Center coordinates (for relative positioning)
+    centerX: 0,
+    centerY: 0,
+
+    bubbleCenterX: halfW + BUBBLE_RADIUS,
+    bubbleCenterY: 0,
+
+    inputYPositions,
+    inputXPositions,
     curveStartX,
-    outputX: halfW + bubbleOffset,
   };
 }
 
 export function terminalInfoOfGate(
   position: Position,
-  options: GateComponentOptions
+  options: GateComponentOptions,
 ): TerminalInfo[] {
   const { type, numberOfInputs } = options;
   const geo = getGateGeometry(type, numberOfInputs);
@@ -105,8 +121,8 @@ export function terminalInfoOfGate(
     name: "out",
     direction: "out",
     position: {
-      x: position.x + geo.outputX,
-      y: position.y,
+      x: position.x + geo.rightX,
+      y: position.y + geo.centerY,
     },
   });
 
@@ -121,7 +137,7 @@ export function terminalInfoOfGate(
  */
 export function simulateGate(
   options: GateComponentOptions,
-  inputs: Map<string, bigint>
+  inputs: Map<string, bigint>,
 ): Map<string, bigint> {
   const { type, numberOfInputs, bitWidth } = options;
   const mask = (1n << BigInt(bitWidth)) - 1n;

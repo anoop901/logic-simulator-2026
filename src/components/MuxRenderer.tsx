@@ -12,11 +12,12 @@ export default function MuxRenderer({ x, y, options }: MuxRendererProps) {
   const geo = getMuxGeometry(selectBits);
 
   // Trapezoid path in center-origin coordinates (wider on input side)
-  const path = `M ${geo.leftX} ${geo.topY} L ${geo.rightX} ${
-    geo.topY + TRAPEZOID_INSET
-  } L ${geo.rightX} ${geo.bottomY - TRAPEZOID_INSET} L ${geo.leftX} ${
-    geo.bottomY
-  } Z`;
+  const path =
+    `M ${geo.leftX} ${geo.topY} ` +
+    `L ${geo.rightX} ${geo.topY + TRAPEZOID_INSET} ` +
+    `L ${geo.rightX} ${geo.bottomY - TRAPEZOID_INSET} ` +
+    `L ${geo.leftX} ${geo.bottomY} ` +
+    `Z`;
 
   return (
     <g transform={`translate(${x}, ${y})`}>
@@ -40,7 +41,7 @@ export default function MuxRenderer({ x, y, options }: MuxRendererProps) {
 
       {/* Select input label */}
       <text
-        x={0}
+        x={geo.centerX}
         y={geo.bottomY - TRAPEZOID_INSET / 2 - 5}
         fill="white"
         fontSize="8"
@@ -52,8 +53,8 @@ export default function MuxRenderer({ x, y, options }: MuxRendererProps) {
 
       {/* Label */}
       <text
-        x={0}
-        y={0}
+        x={geo.centerX}
+        y={geo.centerY}
         fill="white"
         fontSize="10"
         textAnchor="middle"

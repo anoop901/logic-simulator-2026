@@ -11,8 +11,6 @@ export function getNotGeometry() {
   const halfW = NOT_TRIANGLE_WIDTH / 2;
   const halfH = NOT_TRIANGLE_HEIGHT / 2;
   return {
-    halfW,
-    halfH,
     // Triangle vertices relative to center
     triangleLeftX: -halfW,
     triangleRightX: halfW,
@@ -20,15 +18,22 @@ export function getNotGeometry() {
     triangleBottomY: halfH,
     // Bubble position
     bubbleX: halfW + BUBBLE_RADIUS,
-    bubbleRightX: halfW + 2 * BUBBLE_RADIUS,
-    // Total width including bubble
-    totalWidth: NOT_TRIANGLE_WIDTH + BUBBLE_RADIUS * 2,
+    // Standard geometry (full component bounding box)
+    leftX: -halfW,
+    rightX: halfW + BUBBLE_RADIUS * 2,
+    topY: -halfH,
+    bottomY: halfH,
+    width: NOT_TRIANGLE_WIDTH + BUBBLE_RADIUS * 2,
+    height: NOT_TRIANGLE_HEIGHT,
+    // Center coordinates
+    centerX: 0,
+    centerY: 0,
   };
 }
 
 export function terminalInfoOfNot(
   position: Position,
-  _options: NotComponentOptions
+  _options: NotComponentOptions,
 ): TerminalInfo[] {
   const geo = getNotGeometry();
 
@@ -45,7 +50,7 @@ export function terminalInfoOfNot(
       name: "out",
       direction: "out",
       position: {
-        x: position.x + geo.bubbleRightX,
+        x: position.x + geo.rightX,
         y: position.y,
       },
     },
@@ -60,7 +65,7 @@ export function terminalInfoOfNot(
  */
 export function simulateNot(
   options: NotComponentOptions,
-  inputs: Map<string, bigint>
+  inputs: Map<string, bigint>,
 ): Map<string, bigint> {
   const { bitWidth } = options;
   const mask = (1n << BigInt(bitWidth)) - 1n;

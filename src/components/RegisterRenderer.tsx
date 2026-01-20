@@ -1,5 +1,5 @@
 import type { RegisterComponentOptions } from "../types/LogicComponent";
-import { getRegisterGeometry, REGISTER_HEIGHT } from "./register";
+import { getRegisterGeometry } from "./register";
 
 interface RegisterRendererProps {
   x: number;
@@ -21,7 +21,7 @@ export default function RegisterRenderer({
         x={geo.leftX}
         y={geo.topY}
         width={geo.width}
-        height={REGISTER_HEIGHT}
+        height={geo.height}
         fill="transparent"
         stroke="white"
         strokeWidth="2"
@@ -29,9 +29,7 @@ export default function RegisterRenderer({
 
       {/* Clock input (bottom side with triangle) */}
       <polygon
-        points={`${-5},${geo.bottomY} ${0},${geo.bottomY - 8} ${5},${
-          geo.bottomY
-        }`}
+        points={`${-geo.clockTriangleHalfWidth},${geo.bottomY} ${geo.centerX},${geo.bottomY - geo.clockTriangleHeight} ${geo.clockTriangleHalfWidth},${geo.bottomY}`}
         fill="none"
         stroke="white"
         strokeWidth="1.5"
@@ -40,7 +38,7 @@ export default function RegisterRenderer({
       {/* Data input label */}
       <text
         x={geo.leftX + 3}
-        y={0}
+        y={geo.centerY}
         fill="white"
         fontSize="8"
         textAnchor="start"
@@ -52,7 +50,7 @@ export default function RegisterRenderer({
       {/* Data output label */}
       <text
         x={geo.rightX - 3}
-        y={0}
+        y={geo.centerY}
         fill="white"
         fontSize="8"
         textAnchor="end"
@@ -64,8 +62,8 @@ export default function RegisterRenderer({
       {/* Label */}
       {geo.multiBit && (
         <text
-          x={0}
-          y={0}
+          x={geo.centerX}
+          y={geo.centerY}
           fill="white"
           fontSize="10"
           textAnchor="middle"

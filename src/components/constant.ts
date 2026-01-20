@@ -28,7 +28,7 @@ function getWidth(bitWidth: number, displayFormat: DisplayFormat) {
 
 export function getConstantGeometry(
   bitWidth: number,
-  displayFormat: DisplayFormat
+  displayFormat: DisplayFormat,
 ) {
   const width = getWidth(bitWidth, displayFormat);
   const height = CONSTANT_HEIGHT;
@@ -37,18 +37,19 @@ export function getConstantGeometry(
   return {
     width,
     height,
-    halfW,
-    halfH,
-    left: -halfW,
-    right: halfW,
-    top: -halfH,
-    bottom: halfH,
+    // Standard geometry
+    leftX: -halfW,
+    rightX: halfW,
+    topY: -halfH,
+    bottomY: halfH,
+    centerX: 0,
+    centerY: 0,
   };
 }
 
 export function terminalInfoOfConstant(
   position: Position,
-  options: ConstantComponentOptions
+  options: ConstantComponentOptions,
 ): TerminalInfo[] {
   const geo = getConstantGeometry(options.bitWidth, options.displayFormat);
 
@@ -57,8 +58,8 @@ export function terminalInfoOfConstant(
       name: "out",
       direction: "out",
       position: {
-        x: position.x + geo.right,
-        y: position.y,
+        x: position.x + geo.rightX,
+        y: position.y + geo.centerY,
       },
     },
   ];
@@ -70,7 +71,7 @@ export function terminalInfoOfConstant(
 export function formatValue(
   value: bigint,
   bitWidth: number,
-  displayFormat: DisplayFormat
+  displayFormat: DisplayFormat,
 ): string {
   // Mask the value to the bit width using BigInt
   const mask = (1n << BigInt(bitWidth)) - 1n;
@@ -96,7 +97,7 @@ export function formatValue(
  * @returns Map of output terminal name to value
  */
 export function simulateConstant(
-  options: ConstantComponentOptions
+  options: ConstantComponentOptions,
 ): Map<string, bigint> {
   const mask = (1n << BigInt(options.bitWidth)) - 1n;
   const outputs = new Map<string, bigint>();
