@@ -1,16 +1,5 @@
 import { Button, Card, Separator } from "@heroui/react";
-import type {
-  LogicComponent,
-  ComponentOptions,
-  GateComponentOptions,
-  NotComponentOptions,
-  MuxComponentOptions,
-  DecoderComponentOptions,
-  AdderComponentOptions,
-  RegisterComponentOptions,
-  MemoryComponentOptions,
-  ConstantComponentOptions,
-} from "./types/LogicComponent";
+import type { LogicComponent, ComponentOptions } from "./types/LogicComponent";
 import { TrashBin } from "@gravity-ui/icons";
 
 import GateEditor from "./editors/GateEditor";
@@ -21,6 +10,7 @@ import AdderEditor from "./editors/AdderEditor";
 import RegisterEditor from "./editors/RegisterEditor";
 import MemoryEditor from "./editors/MemoryEditor";
 import ConstantEditor from "./editors/ConstantEditor";
+import visitComponent from "./components/visitComponent";
 
 interface PropertiesPanelProps {
   selectedComponent: LogicComponent;
@@ -33,70 +23,35 @@ export default function PropertiesPanel({
   onUpdateOptions,
   onDeleteComponent,
 }: PropertiesPanelProps) {
-  const { kind, options } = selectedComponent;
+  const { kind } = selectedComponent;
 
-  const renderEditor = () => {
-    switch (kind) {
-      case "gate":
-        return (
-          <GateEditor
-            options={options as GateComponentOptions}
-            onUpdate={onUpdateOptions}
-          />
-        );
-      case "not":
-        return (
-          <NotEditor
-            options={options as NotComponentOptions}
-            onUpdate={onUpdateOptions}
-          />
-        );
-      case "mux":
-        return (
-          <MuxEditor
-            options={options as MuxComponentOptions}
-            onUpdate={onUpdateOptions}
-          />
-        );
-      case "decoder":
-        return (
-          <DecoderEditor
-            options={options as DecoderComponentOptions}
-            onUpdate={onUpdateOptions}
-          />
-        );
-      case "adder":
-        return (
-          <AdderEditor
-            options={options as AdderComponentOptions}
-            onUpdate={onUpdateOptions}
-          />
-        );
-      case "register":
-        return (
-          <RegisterEditor
-            options={options as RegisterComponentOptions}
-            onUpdate={onUpdateOptions}
-          />
-        );
-      case "memory":
-        return (
-          <MemoryEditor
-            options={options as MemoryComponentOptions}
-            onUpdate={onUpdateOptions}
-          />
-        );
-      case "constant":
-        return (
-          <ConstantEditor
-            options={options as ConstantComponentOptions}
-            onUpdate={onUpdateOptions}
-          />
-        );
-      default:
-        return null;
-    }
-  };
+  const renderEditor = () =>
+    visitComponent(selectedComponent, {
+      visitGate: (options) => (
+        <GateEditor options={options} onUpdate={onUpdateOptions} />
+      ),
+      visitNot: (options) => (
+        <NotEditor options={options} onUpdate={onUpdateOptions} />
+      ),
+      visitMux: (options) => (
+        <MuxEditor options={options} onUpdate={onUpdateOptions} />
+      ),
+      visitDecoder: (options) => (
+        <DecoderEditor options={options} onUpdate={onUpdateOptions} />
+      ),
+      visitAdder: (options) => (
+        <AdderEditor options={options} onUpdate={onUpdateOptions} />
+      ),
+      visitRegister: (options) => (
+        <RegisterEditor options={options} onUpdate={onUpdateOptions} />
+      ),
+      visitMemory: (options) => (
+        <MemoryEditor options={options} onUpdate={onUpdateOptions} />
+      ),
+      visitConstant: (options) => (
+        <ConstantEditor options={options} onUpdate={onUpdateOptions} />
+      ),
+    });
 
   return (
     <Card className="absolute right-4 bottom-4 w-64">

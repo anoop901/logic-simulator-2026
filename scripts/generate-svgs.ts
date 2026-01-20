@@ -13,41 +13,25 @@ import { fileURLToPath } from "node:url";
 import React from "react";
 import ReactDOMServer from "react-dom/server";
 
-// Import component renderers
-import GateRenderer from "../src/components/GateRenderer.js";
-import NotRenderer from "../src/components/NotRenderer.js";
-import MuxRenderer from "../src/components/MuxRenderer.js";
-import DecoderRenderer from "../src/components/DecoderRenderer.js";
-import AdderRenderer from "../src/components/AdderRenderer.js";
-import RegisterRenderer from "../src/components/RegisterRenderer.js";
-import MemoryRenderer from "../src/components/MemoryRenderer.js";
-import ConstantRenderer from "../src/components/ConstantRenderer.js";
-
 import COMPONENT_MENU_OPTIONS, {
   nameToIconFilename,
 } from "../src/componentMenuOptions.js";
 
-// Import types
-import type {
-  GateComponentOptions,
-  NotComponentOptions,
-  MuxComponentOptions,
-  DecoderComponentOptions,
-  AdderComponentOptions,
-  RegisterComponentOptions,
-  MemoryComponentOptions,
-  ConstantComponentOptions,
-  ComponentOptions,
-} from "../src/types/LogicComponent.js";
+import renderComponent from "../src/components/renderComponent.js";
+import visitComponent from "../src/components/visitComponent.js";
+import type { LogicComponent } from "../src/types/LogicComponent.js";
+
+type Dimensions = {
+  width: number;
+  height: number;
+  offsetX: number;
+  offsetY: number;
+};
 
 // Get component dimensions for viewBox calculation
-function getComponentDimensions(
-  kind: string,
-  options: ComponentOptions
-): { width: number; height: number; offsetX: number; offsetY: number } {
-  switch (kind) {
-    case "gate": {
-      const opts = options as GateComponentOptions;
+function getComponentDimensions(component: LogicComponent): Dimensions {
+  return visitComponent(component, {
+    visitGate(opts) {
       const height = opts.numberOfInputs * 15 + 16;
       const hasInversion =
         opts.type === "NAND" || opts.type === "NOR" || opts.type === "XNOR";
@@ -58,94 +42,34 @@ function getComponentDimensions(
         offsetX: 30 + (hasXor ? 8 : 0),
         offsetY: height / 2,
       };
-    }
-    case "not":
+    },
+    visitNot() {
       return { width: 60, height: 40, offsetX: 25, offsetY: 20 };
-    case "mux": {
-      const opts = options as MuxComponentOptions;
+    },
+    visitMux(opts) {
       const numInputs = Math.pow(2, opts.selectBits);
       const height = Math.max(50, numInputs * 15 + 20);
       return { width: 60, height, offsetX: 30, offsetY: height / 2 };
-    }
-    case "decoder": {
-      const opts = options as DecoderComponentOptions;
+    },
+    visitDecoder(opts) {
       const numOutputs = Math.pow(2, opts.inputBits);
       const height = Math.max(50, numOutputs * 15 + 20);
       return { width: 60, height, offsetX: 30, offsetY: height / 2 };
-    }
-    case "adder":
+    },
+    visitAdder() {
       return { width: 50, height: 110, offsetX: 25, offsetY: 55 };
-    case "register": {
-      const opts = options as RegisterComponentOptions;
+    },
+    visitRegister(opts) {
       const width = opts.bitWidth > 1 ? 90 : 60;
       return { width, height: 50, offsetX: width / 2, offsetY: 25 };
-    }
-    case "memory":
+    },
+    visitMemory() {
       return { width: 90, height: 80, offsetX: 45, offsetY: 40 };
-    case "constant":
+    },
+    visitConstant() {
       return { width: 60, height: 40, offsetX: 30, offsetY: 20 };
-    default:
-      return { width: 80, height: 60, offsetX: 40, offsetY: 30 };
-  }
-}
-
-// Render component based on kind
-function renderComponent(
-  kind: string,
-  options: ComponentOptions
-): React.ReactElement | null {
-  switch (kind) {
-    case "gate":
-      return React.createElement(GateRenderer, {
-        x: 0,
-        y: 0,
-        options: options as GateComponentOptions,
-      });
-    case "not":
-      return React.createElement(NotRenderer, {
-        x: 0,
-        y: 0,
-        options: options as NotComponentOptions,
-      });
-    case "mux":
-      return React.createElement(MuxRenderer, {
-        x: 0,
-        y: 0,
-        options: options as MuxComponentOptions,
-      });
-    case "decoder":
-      return React.createElement(DecoderRenderer, {
-        x: 0,
-        y: 0,
-        options: options as DecoderComponentOptions,
-      });
-    case "adder":
-      return React.createElement(AdderRenderer, {
-        x: 0,
-        y: 0,
-        options: options as AdderComponentOptions,
-      });
-    case "register":
-      return React.createElement(RegisterRenderer, {
-        x: 0,
-        y: 0,
-        options: options as RegisterComponentOptions,
-      });
-    case "memory":
-      return React.createElement(MemoryRenderer, {
-        x: 0,
-        y: 0,
-        options: options as MemoryComponentOptions,
-      });
-    case "constant":
-      return React.createElement(ConstantRenderer, {
-        x: 0,
-        y: 0,
-        options: options as ConstantComponentOptions,
-      });
-    default:
-      return null;
-  }
+    },
+  });
 }
 
 // Main function
@@ -168,13 +92,20 @@ function main() {
       continue;
     }
 
-    const component = renderComponent(definition.kind, definition.options);
-    if (!component) {
+    const logicComponent: LogicComponent = {
+      kind: definition.kind,
+      options: definition.options,
+      id: "",
+      position: { x: 0, y: 0 },
+    };
+
+    const renderedComponent = renderComponent(logicComponent);
+    if (!renderedComponent) {
       console.warn(`  Warning: No renderer for kind "${definition.kind}"`);
       continue;
     }
 
-    const dims = getComponentDimensions(definition.kind, definition.options);
+    const dims = getComponentDimensions(logicComponent);
     const padding = 5;
 
     // Wrap the component in an SVG with appropriate viewBox
@@ -188,7 +119,7 @@ function main() {
         width: dims.width + padding * 2,
         height: dims.height + padding * 2,
       },
-      component
+      renderedComponent,
     );
 
     // Render to string
