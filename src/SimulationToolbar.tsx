@@ -25,7 +25,11 @@ export default function SimulationToolbar({
           </Button>
         ) : (
           <>
-            <Button variant="secondary" onClick={clockStep}>
+            <Button
+              variant="secondary"
+              isDisabled={isRunning}
+              onClick={clockStep}
+            >
               ⏭ Step
             </Button>
 
