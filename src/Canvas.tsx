@@ -192,9 +192,7 @@ export default function Canvas() {
   const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
     const pos = getSvgMousePosition(e);
     updateDrag(pos);
-    if (wireDrag) {
-      updateWireDrag(pos);
-    }
+    updateWireDrag(pos);
   };
 
   const handleMouseUp = () => {
