@@ -4,7 +4,7 @@ import type {
 } from "./types/LogicComponent";
 import type { TerminalWithComponent } from "./hooks/useWireDrag";
 
-import { useMemo, useCallback, useState, useEffect } from "react";
+import { useMemo } from "react";
 import PropertiesPanel from "./PropertiesPanel";
 import renderComponent from "./components/renderComponent";
 import terminalInfoOfComponent from "./components/terminalInfoOfComponent";
@@ -15,18 +15,11 @@ import useWires from "./hooks/useWires";
 import useComponentDrag from "./hooks/useComponentDrag";
 import useWireDrag from "./hooks/useWireDrag";
 import type Position from "./types/Position";
-import {
-  type CircuitSimulationResult,
-  initialSimulationResult,
-  simulateCircuit,
-} from "./simulation/simulateCircuit";
 import { SIMULATION_VALUE_COLOR } from "./utils/simulationColors";
-import useSimulationMode from "./hooks/useSimulationMode";
-import useSimulationState from "./hooks/useSimulationState";
+import useSimulation from "./hooks/useSimulation";
 import SimulationToolbar from "./SimulationToolbar";
 
 const MAX_CUBE_BEZIER_ANCHOR_DISTANCE = 50;
-const SIMULATION_SPEED_PROPAGATION_MS = 50;
 
 // Get mouse position relative to SVG element
 function getSvgMousePosition(e: React.MouseEvent<SVGElement>): {
@@ -100,51 +93,7 @@ export default function Canvas() {
     onWireCreated: addWire,
   });
 
-  // Simulation state management
-  const {
-    state: simulationState,
-    initializeState,
-    applyClockEdge,
-    resetState,
-  } = useSimulationState(components);
-
-  const [simulationResult, setSimulationResult] =
-    useState<CircuitSimulationResult>(new Map());
-
-  // Clock step callback for simulation mode
-  const handleClockStep = useCallback(() => {
-    applyClockEdge(simulationResult);
-  }, [applyClockEdge, simulationResult]);
-
-  // Simulation mode
-  const simulationMode = useSimulationMode({
-    onClockStep: handleClockStep,
-    onStart: initializeState,
-    onStop: resetState,
-  });
-
-  useEffect(() => {
-    if (simulationMode.isSimulating) {
-      setSimulationResult(initialSimulationResult(components));
-    }
-  }, [simulationMode.isSimulating]);
-
-  // Compute simulation result
-  const continuousSimulate = useCallback(() => {
-    setSimulationResult((prevResult) =>
-      simulateCircuit(components, wires, simulationState, prevResult),
-    );
-  }, [components, wires, simulationState]);
-
-  useEffect(() => {
-    if (simulationMode.isSimulating) {
-      const interval = setInterval(
-        continuousSimulate,
-        SIMULATION_SPEED_PROPAGATION_MS,
-      );
-      return () => clearInterval(interval);
-    }
-  }, [simulationMode.isSimulating, continuousSimulate]);
+  const simulation = useSimulation({ components, wires });
 
   // Helper to get terminal position by componentId and terminalName
   const getTerminalPosition = (
@@ -159,11 +108,11 @@ export default function Canvas() {
 
   const handleDragOver = (e: React.DragEvent<SVGSVGElement>) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = !simulationMode.isSimulating ? "copy" : "none";
+    e.dataTransfer.dropEffect = !simulation.isSimulating ? "copy" : "none";
   };
 
   const handleDrop = (e: React.DragEvent<SVGSVGElement>) => {
-    if (simulationMode.isSimulating) return; // Disable during simulation
+    if (simulation.isSimulating) return; // Disable during simulation
     e.preventDefault();
 
     const data = e.dataTransfer.getData("application/json");
@@ -183,7 +132,7 @@ export default function Canvas() {
   };
 
   const handleCanvasMouseDown = (e: React.MouseEvent<SVGSVGElement>) => {
-    if (simulationMode.isSimulating) return; // Disable wire creation during simulation
+    if (simulation.isSimulating) return; // Disable wire creation during simulation
     if (tryStartWireDrag(getSvgMousePosition(e))) {
       e.preventDefault();
     }
@@ -216,7 +165,7 @@ export default function Canvas() {
   return (
     <div className="grow relative bg-default overflow-hidden canvas-grid">
       {/* Simulation toolbar */}
-      <SimulationToolbar {...simulationMode} />
+      <SimulationToolbar {...simulation} />
 
       <svg
         width="100%"
@@ -303,7 +252,7 @@ export default function Canvas() {
           <g
             key={component.id}
             style={{
-              cursor: simulationMode.isSimulating
+              cursor: simulation.isSimulating
                 ? "default"
                 : draggingId === component.id
                   ? "grabbing"
@@ -312,7 +261,7 @@ export default function Canvas() {
                 selectedId === component.id ? "url(#selection-glow)" : "none",
             }}
             onMouseDown={(e) => {
-              if (simulationMode.isSimulating) return; // Disable during simulation
+              if (simulation.isSimulating) return; // Disable during simulation
               e.preventDefault();
               e.stopPropagation();
               startDrag(getSvgMousePosition(e), component);
@@ -321,7 +270,7 @@ export default function Canvas() {
           >
             {renderComponent(component, {
               onSwitchToggle:
-                component.kind === "switch" && simulationMode.isSimulating
+                component.kind === "switch" && simulation.isSimulating
                   ? () => {
                       updateComponentOptions(component.id, {
                         ...component.options,
@@ -331,8 +280,8 @@ export default function Canvas() {
                     }
                   : undefined,
               ledInputValue:
-                component.kind === "led" && simulationMode.isSimulating
-                  ? simulationResult.get(component.id)?.get("in")
+                component.kind === "led" && simulation.isSimulating
+                  ? simulation.result.get(component.id)?.get("in")
                   : undefined,
             })}
           </g>
@@ -340,7 +289,7 @@ export default function Canvas() {
 
         {/* Render terminal circles and simulation values */}
         {allTerminals.map((terminal) => {
-          const componentValues = simulationResult.get(terminal.componentId);
+          const componentValues = simulation.result.get(terminal.componentId);
           const value = componentValues?.get(terminal.name);
 
           return (
@@ -370,7 +319,7 @@ export default function Canvas() {
                 />
               )}
               {/* Display simulation value for output terminals */}
-              {simulationMode.isSimulating &&
+              {simulation.isSimulating &&
                 terminal.direction === "out" &&
                 value !== undefined && (
                   <text
@@ -391,7 +340,7 @@ export default function Canvas() {
       </svg>
 
       {/* Properties panel - hidden during simulation */}
-      {selectedComponent && !simulationMode.isSimulating && (
+      {selectedComponent && !simulation.isSimulating && (
         <PropertiesPanel
           selectedComponent={selectedComponent}
           onUpdateOptions={(newOptions: ComponentOptions) => {
