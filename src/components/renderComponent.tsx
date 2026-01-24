@@ -7,55 +7,87 @@ import MemoryRenderer from "./MemoryRenderer";
 import MuxRenderer from "./MuxRenderer";
 import NotRenderer from "./NotRenderer";
 import RegisterRenderer from "./RegisterRenderer";
+import SwitchRenderer from "./SwitchRenderer";
 import visitComponent from "./visitComponent";
 
+interface RenderComponentOptions {
+  onSwitchToggle?: () => void;
+}
+
 // Render a component based on its kind
-export default function renderComponent(component: LogicComponent) {
+export default function renderComponent(
+  component: LogicComponent,
+  options?: RenderComponentOptions,
+) {
   const { id, position } = component;
 
   return visitComponent(component, {
     visitGate: (options) => (
       <GateRenderer key={id} x={position.x} y={position.y} options={options} />
     ),
-    visitNot: (options) => (
-      <NotRenderer key={id} x={position.x} y={position.y} options={options} />
+    visitNot: (notOptions) => (
+      <NotRenderer
+        key={id}
+        x={position.x}
+        y={position.y}
+        options={notOptions}
+      />
     ),
-    visitMux: (options) => (
-      <MuxRenderer key={id} x={position.x} y={position.y} options={options} />
+    visitMux: (muxOptions) => (
+      <MuxRenderer
+        key={id}
+        x={position.x}
+        y={position.y}
+        options={muxOptions}
+      />
     ),
-    visitDecoder: (options) => (
+    visitDecoder: (decoderOptions) => (
       <DecoderRenderer
         key={id}
         x={position.x}
         y={position.y}
-        options={options}
+        options={decoderOptions}
       />
     ),
-    visitAdder: (options) => (
-      <AdderRenderer key={id} x={position.x} y={position.y} options={options} />
+    visitAdder: (adderOptions) => (
+      <AdderRenderer
+        key={id}
+        x={position.x}
+        y={position.y}
+        options={adderOptions}
+      />
     ),
-    visitRegister: (options) => (
+    visitRegister: (registerOptions) => (
       <RegisterRenderer
         key={id}
         x={position.x}
         y={position.y}
-        options={options}
+        options={registerOptions}
       />
     ),
-    visitMemory: (options) => (
+    visitMemory: (memoryOptions) => (
       <MemoryRenderer
         key={id}
         x={position.x}
         y={position.y}
-        options={options}
+        options={memoryOptions}
       />
     ),
-    visitConstant: (options) => (
+    visitConstant: (constantOptions) => (
       <ConstantRenderer
         key={id}
         x={position.x}
         y={position.y}
-        options={options}
+        options={constantOptions}
+      />
+    ),
+    visitSwitch: (switchOptions) => (
+      <SwitchRenderer
+        key={id}
+        x={position.x}
+        y={position.y}
+        options={switchOptions}
+        onToggle={options?.onSwitchToggle}
       />
     ),
   });

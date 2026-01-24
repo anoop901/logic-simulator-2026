@@ -1,4 +1,7 @@
-import type { ComponentOptions } from "./types/LogicComponent";
+import type {
+  ComponentOptions,
+  SwitchComponentOptions,
+} from "./types/LogicComponent";
 import type { TerminalWithComponent } from "./hooks/useWireDrag";
 
 import { useMemo, useCallback, useState, useEffect } from "react";
@@ -42,7 +45,7 @@ const wirePath = ({ x: x1, y: y1 }: Position, { x: x2, y: y2 }: Position) => {
   const distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
   const anchorDistance = Math.min(
     distance / 3,
-    MAX_CUBE_BEZIER_ANCHOR_DISTANCE
+    MAX_CUBE_BEZIER_ANCHOR_DISTANCE,
   );
   return (
     `M ${x1} ${y1} ` +
@@ -123,7 +126,7 @@ export default function Canvas() {
 
   const continuousSimulate = useCallback(() => {
     setSimulationResult((prevResult) =>
-      simulateCircuit(components, wires, simulationState, prevResult)
+      simulateCircuit(components, wires, simulationState, prevResult),
     );
   }, [components, wires, simulationState]);
 
@@ -131,7 +134,7 @@ export default function Canvas() {
     if (simulationMode.isSimulating) {
       const interval = setInterval(
         continuousSimulate,
-        SIMULATION_SPEED_PROPAGATION_MS
+        SIMULATION_SPEED_PROPAGATION_MS,
       );
       return () => clearInterval(interval);
     }
@@ -146,10 +149,10 @@ export default function Canvas() {
   // Helper to get terminal position by componentId and terminalName
   const getTerminalPosition = (
     componentId: string,
-    terminalName: string
+    terminalName: string,
   ): { x: number; y: number } | null => {
     const terminal = allTerminals.find(
-      (t) => t.componentId === componentId && t.name === terminalName
+      (t) => t.componentId === componentId && t.name === terminalName,
     );
     return terminal?.position ?? null;
   };
@@ -265,11 +268,11 @@ export default function Canvas() {
         {wires.map((wire) => {
           const fromPos = getTerminalPosition(
             wire.from.componentId,
-            wire.from.terminalName
+            wire.from.terminalName,
           );
           const toPos = getTerminalPosition(
             wire.to.componentId,
-            wire.to.terminalName
+            wire.to.terminalName,
           );
           if (!fromPos || !toPos) return null;
 
@@ -289,7 +292,7 @@ export default function Canvas() {
           <path
             d={wirePath(
               wireDrag.fromPosition,
-              wireDragSnappedPosition ?? wireDrag.currentPosition
+              wireDragSnappedPosition ?? wireDrag.currentPosition,
             )}
             stroke="white"
             strokeWidth="2"
@@ -306,8 +309,8 @@ export default function Canvas() {
               cursor: simulationMode.isSimulating
                 ? "default"
                 : draggingId === component.id
-                ? "grabbing"
-                : "grab",
+                  ? "grabbing"
+                  : "grab",
               filter:
                 selectedId === component.id ? "url(#selection-glow)" : "none",
             }}
@@ -319,7 +322,18 @@ export default function Canvas() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {renderComponent(component)}
+            {renderComponent(component, {
+              onSwitchToggle:
+                component.kind === "switch" && simulationMode.isSimulating
+                  ? () => {
+                      updateComponentOptions(component.id, {
+                        ...component.options,
+                        isOn: !(component.options as SwitchComponentOptions)
+                          .isOn,
+                      });
+                    }
+                  : undefined,
+            })}
           </g>
         ))}
 

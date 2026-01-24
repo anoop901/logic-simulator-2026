@@ -8,6 +8,7 @@ import { simulateDecoder } from "../components/decoder";
 import { simulateRegister } from "../components/register";
 import { simulateMemory } from "../components/memory";
 import visitComponent from "../components/visitComponent";
+import { simulateSwitch } from "../components/switch";
 
 /**
  * State for sequential components (registers and memory).
@@ -27,7 +28,7 @@ export interface ComponentState {
 export function simulateComponent(
   component: LogicComponent,
   inputs: Map<string, bigint>,
-  state: ComponentState
+  state: ComponentState,
 ): Map<string, bigint> {
   return visitComponent(component, {
     visitConstant: (options) => simulateConstant(options),
@@ -45,5 +46,6 @@ export function simulateComponent(
         state.memoryStates.get(component.id) ?? new Uint8Array(0);
       return simulateMemory(options, inputs, memoryState);
     },
+    visitSwitch: (options) => simulateSwitch(options),
   });
 }

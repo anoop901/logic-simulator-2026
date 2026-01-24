@@ -8,6 +8,7 @@ import type {
   MuxComponentOptions,
   NotComponentOptions,
   RegisterComponentOptions,
+  SwitchComponentOptions,
 } from "../types/LogicComponent";
 
 interface ComponentVisitor<T> {
@@ -19,11 +20,12 @@ interface ComponentVisitor<T> {
   visitRegister(options: RegisterComponentOptions): T;
   visitMemory(options: MemoryComponentOptions): T;
   visitConstant(options: ConstantComponentOptions): T;
+  visitSwitch(options: SwitchComponentOptions): T;
 }
 
 export default function visitComponent<T>(
   component: LogicComponent,
-  visitor: ComponentVisitor<T>
+  visitor: ComponentVisitor<T>,
 ) {
   const { options } = component;
   switch (component.kind) {
@@ -43,6 +45,8 @@ export default function visitComponent<T>(
       return visitor.visitMemory(options as MemoryComponentOptions);
     case "constant":
       return visitor.visitConstant(options as ConstantComponentOptions);
+    case "switch":
+      return visitor.visitSwitch(options as SwitchComponentOptions);
     default:
       throw new Error(`unknown component kind ${component.kind}`);
   }

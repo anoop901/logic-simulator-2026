@@ -72,6 +72,14 @@ const COMPONENT_MENU_OPTIONS: ComponentMenuOption[] = [
     options: { bitWidth: 8, value: 0n, displayFormat: "hex" },
   },
 
+  // IO
+  {
+    name: "Switch",
+    category: "IO",
+    kind: "switch",
+    options: { isOn: false },
+  },
+
   // Combinational - Mux
   {
     name: "2-to-1 Mux",

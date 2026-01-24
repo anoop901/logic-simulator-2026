@@ -43,6 +43,10 @@ export interface MemoryComponentOptions {
   wordSize: number; // Word size in bytes
 }
 
+export interface SwitchComponentOptions {
+  isOn: boolean;
+}
+
 // Display format for constant values
 export type DisplayFormat = "bin" | "dec" | "hex";
 
@@ -60,7 +64,8 @@ export type ComponentOptions =
   | AdderComponentOptions
   | RegisterComponentOptions
   | MemoryComponentOptions
-  | ConstantComponentOptions;
+  | ConstantComponentOptions
+  | SwitchOptions;
 
 // The main LogicComponent type with shared fields
 export interface LogicComponent {

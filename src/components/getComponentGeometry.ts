@@ -8,6 +8,7 @@ import { getAdderGeometry } from "./adder";
 import { getRegisterGeometry } from "./register";
 import { getMemoryGeometry } from "./memory";
 import { getConstantGeometry } from "./constant";
+import { getSwitchGeometry } from "./switch";
 
 /**
  * Standard component geometry interface.
@@ -53,6 +54,9 @@ export default function getComponentGeometry(
     },
     visitConstant(options) {
       return getConstantGeometry(options.bitWidth, options.displayFormat);
+    },
+    visitSwitch() {
+      return getSwitchGeometry();
     },
   });
 }

@@ -8,6 +8,7 @@ import { terminalInfoOfMemory } from "./memory";
 import { terminalInfoOfMux } from "./mux";
 import { terminalInfoOfNot } from "./not";
 import { terminalInfoOfRegister } from "./register";
+import { terminalInfoOfSwitch } from "./switch";
 import visitComponent from "./visitComponent";
 
 export interface TerminalInfo {
@@ -29,5 +30,6 @@ export default function terminalInfoOfComponent(
     visitRegister: (options) => terminalInfoOfRegister(position, options),
     visitMemory: (options) => terminalInfoOfMemory(position, options),
     visitConstant: (options) => terminalInfoOfConstant(position, options),
+    visitSwitch: () => terminalInfoOfSwitch(position),
   });
 }
