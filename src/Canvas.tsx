@@ -158,9 +158,8 @@ export default function Canvas() {
   };
 
   const handleDragOver = (e: React.DragEvent<SVGSVGElement>) => {
-    if (simulationMode.isSimulating) return; // Disable during simulation
     e.preventDefault();
-    e.dataTransfer.dropEffect = "copy";
+    e.dataTransfer.dropEffect = !simulationMode.isSimulating ? "copy" : "none";
   };
 
   const handleDrop = (e: React.DragEvent<SVGSVGElement>) => {
