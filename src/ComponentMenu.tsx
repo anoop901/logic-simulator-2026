@@ -10,12 +10,12 @@ import componentMenuOptionToIcon from "./componentMenuOptionToIcon";
 export default function ComponentMenu() {
   const groupedMenuOptions = useMemo(
     () => Map.groupBy(COMPONENT_MENU_OPTIONS, (option) => option.category),
-    []
+    [],
   );
 
   const handleDragStart = (
     e: React.DragEvent<HTMLDivElement>,
-    option: ComponentMenuOption
+    option: ComponentMenuOption,
   ) => {
     // Store the component data in the drag event
     e.dataTransfer.setData(
@@ -23,7 +23,7 @@ export default function ComponentMenu() {
       stringifyWithBigInt({
         kind: option.kind,
         options: option.options,
-      })
+      }),
     );
     e.dataTransfer.effectAllowed = "copy";
     const icon = componentMenuOptionToIcon(option);
