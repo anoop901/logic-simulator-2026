@@ -108,7 +108,6 @@ export default function Canvas() {
     resetState,
   } = useSimulationState(components);
 
-  // Compute simulation result
   const [simulationResult, setSimulationResult] =
     useState<CircuitSimulationResult>(new Map());
 
@@ -124,6 +123,13 @@ export default function Canvas() {
     onStop: resetState,
   });
 
+  useEffect(() => {
+    if (simulationMode.isSimulating) {
+      setSimulationResult(initialSimulationResult(components));
+    }
+  }, [simulationMode.isSimulating]);
+
+  // Compute simulation result
   const continuousSimulate = useCallback(() => {
     setSimulationResult((prevResult) =>
       simulateCircuit(components, wires, simulationState, prevResult),
@@ -139,12 +145,6 @@ export default function Canvas() {
       return () => clearInterval(interval);
     }
   }, [simulationMode.isSimulating, continuousSimulate]);
-
-  useEffect(() => {
-    if (simulationMode.isSimulating) {
-      setSimulationResult(initialSimulationResult(components));
-    }
-  }, [simulationMode.isSimulating]);
 
   // Helper to get terminal position by componentId and terminalName
   const getTerminalPosition = (

@@ -30,18 +30,10 @@ export default function useSimulationMode({
 }: UseSimulationModeOptions): SimulationMode {
   const [isSimulating, setIsSimulating] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
-  const intervalRef = useRef<number | null>(null);
 
-  // Use a ref to always have access to the latest onClockStep
+  // Store the latest onClockStep in a ref so the interval always calls the current version
   const onClockStepRef = useRef(onClockStep);
   onClockStepRef.current = onClockStep;
-
-  const clearRunInterval = useCallback(() => {
-    if (intervalRef.current !== null) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-  }, []);
 
   const startSimulation = useCallback(() => {
     setIsSimulating(true);
@@ -50,38 +42,35 @@ export default function useSimulationMode({
   }, [onStart]);
 
   const stopSimulation = useCallback(() => {
-    clearRunInterval();
     setIsSimulating(false);
     setIsRunning(false);
     onStop();
-  }, [clearRunInterval, onStop]);
+  }, [onStop]);
 
   const clockStep = useCallback(() => {
     if (isSimulating) {
-      onClockStepRef.current();
+      onClockStep();
+    }
+  }, [isSimulating, onClockStep]);
+
+  const run = useCallback(() => {
+    if (isSimulating) {
+      setIsRunning(true);
     }
   }, [isSimulating]);
 
-  const run = useCallback(() => {
-    if (isSimulating && !isRunning) {
-      setIsRunning(true);
-      intervalRef.current = window.setInterval(() => {
-        onClockStepRef.current(); // Always calls the latest version
-      }, RUN_INTERVAL_MS);
-    }
-  }, [isSimulating, isRunning]);
-
   const pause = useCallback(() => {
-    clearRunInterval();
     setIsRunning(false);
-  }, [clearRunInterval]);
+  }, []);
 
-  // Cleanup on unmount
   useEffect(() => {
-    return () => {
-      clearRunInterval();
-    };
-  }, [clearRunInterval]);
+    if (isRunning) {
+      const interval = window.setInterval(() => {
+        onClockStepRef.current();
+      }, RUN_INTERVAL_MS);
+      return () => clearInterval(interval);
+    }
+  }, [isRunning]);
 
   return {
     isSimulating,
