@@ -1,6 +1,7 @@
 import type { LogicComponent } from "../types/LogicComponent";
 import { simulateConstant } from "../components/constant";
 import { simulateGate } from "../components/gate";
+import { simulateLED } from "../components/led";
 import { simulateNot } from "../components/not";
 import { simulateAdder } from "../components/adder";
 import { simulateMux } from "../components/mux";
@@ -47,5 +48,6 @@ export function simulateComponent(
       return simulateMemory(options, inputs, memoryState);
     },
     visitSwitch: (options) => simulateSwitch(options),
+    visitLED: (options) => simulateLED(options, inputs),
   });
 }

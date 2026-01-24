@@ -3,6 +3,7 @@ import type {
   ConstantComponentOptions,
   DecoderComponentOptions,
   GateComponentOptions,
+  LEDComponentOptions,
   LogicComponent,
   MemoryComponentOptions,
   MuxComponentOptions,
@@ -21,6 +22,7 @@ interface ComponentVisitor<T> {
   visitMemory(options: MemoryComponentOptions): T;
   visitConstant(options: ConstantComponentOptions): T;
   visitSwitch(options: SwitchComponentOptions): T;
+  visitLED(options: LEDComponentOptions): T;
 }
 
 export default function visitComponent<T>(
@@ -47,6 +49,8 @@ export default function visitComponent<T>(
       return visitor.visitConstant(options as ConstantComponentOptions);
     case "switch":
       return visitor.visitSwitch(options as SwitchComponentOptions);
+    case "led":
+      return visitor.visitLED(options as LEDComponentOptions);
     default:
       throw new Error(`unknown component kind ${component.kind}`);
   }

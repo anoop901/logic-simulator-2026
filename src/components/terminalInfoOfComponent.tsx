@@ -4,6 +4,7 @@ import { terminalInfoOfAdder } from "./adder";
 import { terminalInfoOfConstant } from "./constant";
 import { terminalInfoOfDecoder } from "./decoder";
 import { terminalInfoOfGate } from "./gate";
+import { terminalInfoOfLED } from "./led";
 import { terminalInfoOfMemory } from "./memory";
 import { terminalInfoOfMux } from "./mux";
 import { terminalInfoOfNot } from "./not";
@@ -31,5 +32,6 @@ export default function terminalInfoOfComponent(
     visitMemory: (options) => terminalInfoOfMemory(position, options),
     visitConstant: (options) => terminalInfoOfConstant(position, options),
     visitSwitch: () => terminalInfoOfSwitch(position),
+    visitLED: () => terminalInfoOfLED(position),
   });
 }

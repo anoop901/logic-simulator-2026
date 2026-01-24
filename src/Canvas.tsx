@@ -333,6 +333,10 @@ export default function Canvas() {
                       });
                     }
                   : undefined,
+              ledInputValue:
+                component.kind === "led" && simulationMode.isSimulating
+                  ? simulationResult.get(component.id)?.get("in")
+                  : undefined,
             })}
           </g>
         ))}

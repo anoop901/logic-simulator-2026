@@ -79,6 +79,12 @@ const COMPONENT_MENU_OPTIONS: ComponentMenuOption[] = [
     kind: "switch",
     options: { isOn: false },
   },
+  {
+    name: "LED",
+    category: "IO",
+    kind: "led",
+    options: {},
+  },
 
   // Combinational - Mux
   {

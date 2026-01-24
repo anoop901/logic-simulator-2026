@@ -31,6 +31,7 @@ import constant1 from "./assets/constant-1-icon.svg";
 import constantByte from "./assets/byte-constant-icon.svg";
 
 import switchIcon from "./assets/switch-icon.svg";
+import ledIcon from "./assets/led-icon.svg";
 
 import type { ComponentMenuOption } from "./componentMenuOptions";
 
@@ -65,6 +66,7 @@ const COMPONENT_MENU_OPTION_NAME_TO_ICON: Map<string, string> = new Map([
   ["Constant 1", constant1],
   ["Byte Constant", constantByte],
   ["Switch", switchIcon],
+  ["LED", ledIcon],
 ]);
 
 export default function componentMenuOptionToIcon(

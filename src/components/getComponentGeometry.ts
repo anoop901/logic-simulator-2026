@@ -9,6 +9,7 @@ import { getRegisterGeometry } from "./register";
 import { getMemoryGeometry } from "./memory";
 import { getConstantGeometry } from "./constant";
 import { getSwitchGeometry } from "./switch";
+import { getLEDGeometry } from "./led";
 
 /**
  * Standard component geometry interface.
@@ -57,6 +58,9 @@ export default function getComponentGeometry(
     },
     visitSwitch() {
       return getSwitchGeometry();
+    },
+    visitLED() {
+      return getLEDGeometry();
     },
   });
 }

@@ -47,6 +47,11 @@ export interface SwitchComponentOptions {
   isOn: boolean;
 }
 
+// LED component - visual output indicator
+export interface LEDComponentOptions {
+  // LED has no configurable options - it just displays input value
+}
+
 // Display format for constant values
 export type DisplayFormat = "bin" | "dec" | "hex";
 
@@ -65,7 +70,8 @@ export type ComponentOptions =
   | RegisterComponentOptions
   | MemoryComponentOptions
   | ConstantComponentOptions
-  | SwitchOptions;
+  | SwitchComponentOptions
+  | LEDComponentOptions;
 
 // The main LogicComponent type with shared fields
 export interface LogicComponent {

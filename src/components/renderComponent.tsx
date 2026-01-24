@@ -3,6 +3,7 @@ import AdderRenderer from "./AdderRenderer";
 import ConstantRenderer from "./ConstantRenderer";
 import DecoderRenderer from "./DecoderRenderer";
 import GateRenderer from "./GateRenderer";
+import LEDRenderer from "./LEDRenderer";
 import MemoryRenderer from "./MemoryRenderer";
 import MuxRenderer from "./MuxRenderer";
 import NotRenderer from "./NotRenderer";
@@ -12,6 +13,7 @@ import visitComponent from "./visitComponent";
 
 interface RenderComponentOptions {
   onSwitchToggle?: () => void;
+  ledInputValue?: bigint;
 }
 
 // Render a component based on its kind
@@ -22,8 +24,13 @@ export default function renderComponent(
   const { id, position } = component;
 
   return visitComponent(component, {
-    visitGate: (options) => (
-      <GateRenderer key={id} x={position.x} y={position.y} options={options} />
+    visitGate: (gateOptions) => (
+      <GateRenderer
+        key={id}
+        x={position.x}
+        y={position.y}
+        options={gateOptions}
+      />
     ),
     visitNot: (notOptions) => (
       <NotRenderer
@@ -88,6 +95,15 @@ export default function renderComponent(
         y={position.y}
         options={switchOptions}
         onToggle={options?.onSwitchToggle}
+      />
+    ),
+    visitLED: (ledOptions) => (
+      <LEDRenderer
+        key={id}
+        x={position.x}
+        y={position.y}
+        options={ledOptions}
+        inputValue={options?.ledInputValue}
       />
     ),
   });
