@@ -83,7 +83,7 @@ export function simulateCircuit(
       const oldOutputs = valuesAtComponentInResult(component, result, "out");
       const newOutputs = simulateComponent(component, inputs, state);
       if (equal(oldOutputs, newOutputs)) {
-        break;
+        continue;
       }
       changed = true;
       for (const [outputTerminalName, value] of newOutputs) {
