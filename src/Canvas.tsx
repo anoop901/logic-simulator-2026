@@ -270,7 +270,7 @@ export default function Canvas() {
           >
             {renderComponent(component, {
               onSwitchToggle:
-                component.kind === "switch" && simulation.isSimulating
+                component.kind === "switch"
                   ? () => {
                       updateComponentOptions(component.id, {
                         ...component.options,
