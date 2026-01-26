@@ -13,6 +13,8 @@ import {
   simulateMemory,
   updateMemoryOnClockEdge,
 } from "../../components/memory";
+import { simulateSwitch } from "../../components/switch";
+import { simulateLED } from "../../components/led";
 import { simulateComponent, type ComponentState } from "../simulation";
 import { simulateCircuit } from "../simulateCircuit";
 import type { LogicComponent } from "../../types/LogicComponent";
@@ -45,7 +47,7 @@ describe("simulateGate", () => {
     ]);
     const result = simulateGate(
       { type: "AND", numberOfInputs: 2, bitWidth: 8 },
-      inputs
+      inputs,
     );
     expect(result.get("out")).toBe(0xffn);
   });
@@ -57,7 +59,7 @@ describe("simulateGate", () => {
     ]);
     const result = simulateGate(
       { type: "AND", numberOfInputs: 2, bitWidth: 8 },
-      inputs
+      inputs,
     );
     expect(result.get("out")).toBe(0x00n);
   });
@@ -69,7 +71,7 @@ describe("simulateGate", () => {
     ]);
     const result = simulateGate(
       { type: "OR", numberOfInputs: 2, bitWidth: 8 },
-      inputs
+      inputs,
     );
     expect(result.get("out")).toBe(0xffn);
   });
@@ -81,7 +83,7 @@ describe("simulateGate", () => {
     ]);
     const result = simulateGate(
       { type: "NAND", numberOfInputs: 2, bitWidth: 8 },
-      inputs
+      inputs,
     );
     expect(result.get("out")).toBe(0x00n);
   });
@@ -93,7 +95,7 @@ describe("simulateGate", () => {
     ]);
     const result = simulateGate(
       { type: "XOR", numberOfInputs: 2, bitWidth: 8 },
-      inputs
+      inputs,
     );
     expect(result.get("out")).toBe(0xaan);
   });
@@ -106,7 +108,7 @@ describe("simulateGate", () => {
     ]);
     const result = simulateGate(
       { type: "AND", numberOfInputs: 3, bitWidth: 8 },
-      inputs
+      inputs,
     );
     expect(result.get("out")).toBe(0x0fn);
   });
@@ -240,7 +242,7 @@ describe("simulateMemory", () => {
     const result = simulateMemory(
       { type: "ROM", addressSize: 2, wordSize: 1 },
       inputs,
-      state
+      state,
     );
     expect(result.get("out")).toBe(0x34n);
   });
@@ -251,7 +253,7 @@ describe("simulateMemory", () => {
     const result = simulateMemory(
       { type: "ROM", addressSize: 1, wordSize: 2 },
       inputs,
-      state
+      state,
     );
     expect(result.get("out")).toBe(0x7856n);
   });
@@ -268,7 +270,7 @@ describe("updateMemoryOnClockEdge", () => {
     const newState = updateMemoryOnClockEdge(
       { type: "ROM", addressSize: 1, wordSize: 1 },
       inputs,
-      state
+      state,
     );
     expect(newState[0]).toBe(0x00);
   });
@@ -283,7 +285,7 @@ describe("updateMemoryOnClockEdge", () => {
     const newState = updateMemoryOnClockEdge(
       { type: "RAM", addressSize: 1, wordSize: 1 },
       inputs,
-      state
+      state,
     );
     expect(newState[0]).toBe(0xab);
   });
@@ -298,7 +300,7 @@ describe("updateMemoryOnClockEdge", () => {
     const newState = updateMemoryOnClockEdge(
       { type: "RAM", addressSize: 1, wordSize: 1 },
       inputs,
-      state
+      state,
     );
     expect(newState[0]).toBe(0x00);
   });
@@ -334,6 +336,26 @@ describe("simulateComponent", () => {
     };
     const result = simulateComponent(component, new Map(), emptyState);
     expect(result.get("out")).toBe(42n);
+  });
+});
+
+describe("simulateSwitch", () => {
+  it("returns 1 when switch is on", () => {
+    const result = simulateSwitch({ isOn: true });
+    expect(result.get("out")).toBe(1n);
+  });
+
+  it("returns 0 when switch is off", () => {
+    const result = simulateSwitch({ isOn: false });
+    expect(result.get("out")).toBe(0n);
+  });
+});
+
+describe("simulateLED", () => {
+  it("returns empty map (LED has no outputs)", () => {
+    const inputs = new Map([["in", 1n]]);
+    const result = simulateLED({}, inputs);
+    expect(result.size).toBe(0);
   });
 });
 
@@ -412,5 +434,193 @@ describe("simulateCircuit", () => {
     const result = simulateCircuit(components, wires, state);
 
     expect(result.get("and1")?.get("out")).toBe(0x0fn);
+  });
+
+  it("uses register state for output", () => {
+    const components: LogicComponent[] = [
+      {
+        id: "reg1",
+        kind: "register",
+        position: { x: 0, y: 0 },
+        options: { bitWidth: 8 },
+      },
+    ];
+    const wires: {
+      id: string;
+      from: { componentId: string; terminalName: string };
+      to: { componentId: string; terminalName: string };
+    }[] = [];
+    const state: ComponentState = {
+      registerStates: new Map([["reg1", 42n]]),
+      memoryStates: new Map(),
+    };
+
+    const result = simulateCircuit(components, wires, state);
+
+    expect(result.get("reg1")?.get("q")).toBe(42n);
+  });
+
+  it("uses prevResult for incremental simulation", () => {
+    const components: LogicComponent[] = [
+      {
+        id: "const1",
+        kind: "constant",
+        position: { x: 0, y: 0 },
+        options: { bitWidth: 8, value: 0xffn, displayFormat: "hex" },
+      },
+    ];
+    const wires: {
+      id: string;
+      from: { componentId: string; terminalName: string };
+      to: { componentId: string; terminalName: string };
+    }[] = [];
+    const state: ComponentState = {
+      registerStates: new Map(),
+      memoryStates: new Map(),
+    };
+
+    // First simulation
+    const result1 = simulateCircuit(components, wires, state);
+    expect(result1.get("const1")?.get("out")).toBe(0xffn);
+
+    // Second simulation with prevResult
+    const result2 = simulateCircuit(components, wires, state, result1);
+    expect(result2.get("const1")?.get("out")).toBe(0xffn);
+  });
+
+  it("preserves stable state from prevResult in bistable circuit", () => {
+    // SR latch using NOR gates (Standard configuration):
+    //   R ──► NOR_Q ──┬──► Q
+    //         ▲       │
+    //         │       │
+    //         └───────┼──┐
+    //                 │  │
+    //   S ──► NOR_NQ ─┴──│──► Q̄
+    //                    │
+    //                    ▼
+    //
+    // Connections:
+    // R -> NOR_Q input
+    // S -> NOR_NQ input
+    // Q (NOR_Q output) -> NOR_NQ input
+    // Q̄ (NOR_NQ output) -> NOR_Q input
+    //
+    // With S=0, R=0, there are two stable states: (Q=0,Q̄=1) or (Q=1,Q̄=0)
+    // prevResult should determine which one is maintained
+
+    const components: LogicComponent[] = [
+      {
+        id: "s_input",
+        kind: "constant",
+        position: { x: 0, y: 50 },
+        options: { bitWidth: 1, value: 0n, displayFormat: "bin" },
+      },
+      {
+        id: "r_input",
+        kind: "constant",
+        position: { x: 0, y: 0 },
+        options: { bitWidth: 1, value: 0n, displayFormat: "bin" },
+      },
+      {
+        id: "nor_q",
+        kind: "gate",
+        position: { x: 100, y: 0 },
+        options: { type: "NOR", numberOfInputs: 2, bitWidth: 1 },
+      },
+      {
+        id: "nor_nq",
+        kind: "gate",
+        position: { x: 100, y: 50 },
+        options: { type: "NOR", numberOfInputs: 2, bitWidth: 1 },
+      },
+    ];
+
+    const wires = [
+      // R -> NOR_Q.in0
+      {
+        id: "w1",
+        from: { componentId: "r_input", terminalName: "out" },
+        to: { componentId: "nor_q", terminalName: "in0" },
+      },
+      // S -> NOR_NQ.in0
+      {
+        id: "w2",
+        from: { componentId: "s_input", terminalName: "out" },
+        to: { componentId: "nor_nq", terminalName: "in0" },
+      },
+      // NOR_Q.out (Q) -> NOR_NQ.in1
+      {
+        id: "w3",
+        from: { componentId: "nor_q", terminalName: "out" },
+        to: { componentId: "nor_nq", terminalName: "in1" },
+      },
+      // NOR_NQ.out (Q̄) -> NOR_Q.in1
+      {
+        id: "w4",
+        from: { componentId: "nor_nq", terminalName: "out" },
+        to: { componentId: "nor_q", terminalName: "in1" },
+      },
+    ];
+
+    const state: ComponentState = {
+      registerStates: new Map(),
+      memoryStates: new Map(),
+    };
+
+    // Case 1: Maintains Q=1 state
+    // Q=1 => NOR_NQ inputs are (S=0, Q=1) => Q̄=0
+    // Q̄=0 => NOR_Q inputs are (R=0, Q̄=0) => Q=1 (Stable)
+    const prevResultQ1 = new Map([
+      ["s_input", new Map([["out", 0n]])],
+      ["r_input", new Map([["out", 0n]])],
+      [
+        "nor_q",
+        new Map([
+          ["in0", 0n],
+          ["in1", 0n],
+          ["out", 1n],
+        ]),
+      ], // Q=1
+      [
+        "nor_nq",
+        new Map([
+          ["in0", 0n],
+          ["in1", 1n],
+          ["out", 0n],
+        ]),
+      ], // Q̄=0
+    ]);
+
+    const result1 = simulateCircuit(components, wires, state, prevResultQ1);
+    expect(result1.get("nor_q")?.get("out")).toBe(1n); // Q stays 1
+    expect(result1.get("nor_nq")?.get("out")).toBe(0n); // Q̄ stays 0
+
+    // Case 2: Maintains Q=0 state
+    // Q=0 => NOR_NQ inputs are (S=0, Q=0) => Q̄=1
+    // Q̄=1 => NOR_Q inputs are (R=0, Q̄=1) => Q=0 (Stable)
+    const prevResultQ0 = new Map([
+      ["s_input", new Map([["out", 0n]])],
+      ["r_input", new Map([["out", 0n]])],
+      [
+        "nor_q",
+        new Map([
+          ["in0", 0n],
+          ["in1", 1n],
+          ["out", 0n],
+        ]),
+      ], // Q=0
+      [
+        "nor_nq",
+        new Map([
+          ["in0", 0n],
+          ["in1", 0n],
+          ["out", 1n],
+        ]),
+      ], // Q̄=1
+    ]);
+
+    const result2 = simulateCircuit(components, wires, state, prevResultQ0);
+    expect(result2.get("nor_q")?.get("out")).toBe(0n); // Q stays 0
+    expect(result2.get("nor_nq")?.get("out")).toBe(1n); // Q̄ stays 1
   });
 });
