@@ -3,13 +3,10 @@ import type { LogicComponent } from "../types/LogicComponent";
 import type { Wire } from "../types/Wire";
 import {
   type CircuitSimulationResult,
-  initialSimulationResult,
   simulateCircuit,
 } from "../simulation/simulateCircuit";
 import useSimulationMode, { type SimulationMode } from "./useSimulationMode";
 import useSimulationState from "./useSimulationState";
-
-const SIMULATION_SPEED_PROPAGATION_MS = 50;
 
 interface UseSimulationOptions {
   components: LogicComponent[];
@@ -47,29 +44,21 @@ export default function useSimulation({
     onStop: resetState,
   });
 
-  // Initialize result when simulation starts
+  // Initialize simulation result when simulation starts
   useEffect(() => {
     if (simulationMode.isSimulating) {
-      setResult(initialSimulationResult(components));
+      setResult(() => simulateCircuit(components, wires, simulationState));
     }
   }, [simulationMode.isSimulating]);
 
-  // Continuous simulation loop
-  const continuousSimulate = useCallback(() => {
-    setResult((prevResult) =>
-      simulateCircuit(components, wires, simulationState, prevResult),
-    );
-  }, [components, wires, simulationState]);
-
+  // Recalculate simulation result when circuit changes, or register/memory values change
   useEffect(() => {
     if (simulationMode.isSimulating) {
-      const interval = setInterval(
-        continuousSimulate,
-        SIMULATION_SPEED_PROPAGATION_MS,
+      setResult((prevResult) =>
+        simulateCircuit(components, wires, simulationState, prevResult),
       );
-      return () => clearInterval(interval);
     }
-  }, [simulationMode.isSimulating, continuousSimulate]);
+  }, [simulationState, components, wires]);
 
   return {
     ...simulationMode,

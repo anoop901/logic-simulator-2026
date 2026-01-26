@@ -2,13 +2,14 @@ import type { LogicComponent } from "../types/LogicComponent";
 import type { Wire } from "../types/Wire";
 import { simulateComponent, type ComponentState } from "./simulation";
 import terminalInfoOfComponent from "../components/terminalInfoOfComponent";
+import equal from "fast-deep-equal/es6";
 
 /**
  * Result of circuit simulation - values at all terminals.
  */
 export type CircuitSimulationResult = Map<string, Map<string, bigint>>;
 
-export function initialSimulationResult(components: LogicComponent[]) {
+function initialSimulationResult(components: LogicComponent[]) {
   return new Map(
     components.map((component) => [
       component.id,
@@ -16,10 +17,35 @@ export function initialSimulationResult(components: LogicComponent[]) {
         terminalInfoOfComponent(component).map((terminal) => [
           terminal.name,
           0n,
-        ])
+        ]),
       ),
-    ])
+    ]),
   );
+}
+
+function valuesAtComponentInResult(
+  component: LogicComponent,
+  simulationResult: CircuitSimulationResult,
+  direction?: "in" | "out",
+): Map<string, bigint> {
+  const inputsAndOutputs = simulationResult.get(component.id);
+  if (inputsAndOutputs == null) {
+    return new Map();
+  }
+  const result = new Map<string, bigint>();
+  let terminalInfo = terminalInfoOfComponent(component);
+  if (direction != null) {
+    terminalInfo = terminalInfo.filter(
+      (terminal) => terminal.direction === direction,
+    );
+  }
+  for (const inputTerminal of terminalInfo) {
+    result.set(
+      inputTerminal.name,
+      inputsAndOutputs.get(inputTerminal.name) ?? 0n,
+    );
+  }
+  return result;
 }
 
 /**
@@ -34,68 +60,50 @@ export function simulateCircuit(
   components: LogicComponent[],
   wires: Wire[],
   state: ComponentState,
-  prevResult: CircuitSimulationResult | null
+  prevResult?: CircuitSimulationResult | undefined,
 ): CircuitSimulationResult {
-  const wiresByInputTerminal = new Map(
-    wires.map((wire) => [
-      `${wire.to.componentId}-${wire.to.terminalName}`,
-      wire,
-    ])
+  const result = structuredClone(
+    prevResult ?? initialSimulationResult(components),
   );
 
-  // Terminal values: componentId -> (terminalName -> value)
-  const terminalValues: CircuitSimulationResult =
-    prevResult ?? initialSimulationResult(components);
-
-  // Deep copy the terminal values
-  const newTerminalValues: CircuitSimulationResult = new Map(
-    Array.from(terminalValues.entries()).map(([componentId, terminals]) => [
-      componentId,
-      new Map(terminals),
-    ])
+  const outputTerminalToWire = Map.groupBy(
+    wires,
+    (wire) => `${wire.from.componentId}-${wire.from.terminalName}`,
   );
 
-  for (const component of components) {
-    // Gather input values for this component from connected wires
-    const componentTerminals = terminalInfoOfComponent(component);
-    const inputs = new Map<string, bigint>();
-
-    for (const terminal of componentTerminals) {
-      if (terminal.direction === "in") {
-        // Look up the wire connected to this input terminal
-        const wireKey = `${component.id}-${terminal.name}`;
-        const wire = wiresByInputTerminal.get(wireKey);
-        if (wire) {
-          // Get the value from the source terminal
-          const sourceValue =
-            terminalValues
-              .get(wire.from.componentId)
-              ?.get(wire.from.terminalName) ?? 0n;
-          inputs.set(terminal.name, sourceValue);
-        } else {
-          // No wire connected, default to 0
-          inputs.set(terminal.name, 0n);
+  const MAX_ITERATIONS = 100;
+  let iteration = 0;
+  for (iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
+    // Shuffle components to randomize propagation order
+    // This breaks synchronous oscillation in circuits like RS latches
+    const shuffledComponents = [...components].sort(() => Math.random() - 0.5);
+    let changed = false;
+    for (const component of shuffledComponents) {
+      const inputs = valuesAtComponentInResult(component, result, "in");
+      const oldOutputs = valuesAtComponentInResult(component, result, "out");
+      const newOutputs = simulateComponent(component, inputs, state);
+      if (equal(oldOutputs, newOutputs)) {
+        break;
+      }
+      changed = true;
+      for (const [outputTerminalName, value] of newOutputs) {
+        result.get(component.id)?.set(outputTerminalName, value);
+        const outWires =
+          outputTerminalToWire.get(`${component.id}-${outputTerminalName}`) ??
+          [];
+        for (const outWire of outWires) {
+          const toComponentId = outWire.to.componentId;
+          const toInputTerminalName = outWire.to.terminalName;
+          result.get(toComponentId)?.set(toInputTerminalName, value);
         }
       }
     }
-
-    // Store input terminal values
-    for (const [terminalName, inputValue] of inputs) {
-      newTerminalValues.get(component.id)?.set(terminalName, inputValue);
-    }
-
-    // Simulate the component to get output values
-    const outputs = simulateComponent(component, inputs, state);
-
-    // Update output terminal values if they changed
-    for (const [terminalName, outputValue] of outputs) {
-      const currentValue =
-        terminalValues.get(component.id)?.get(terminalName) ?? 0n;
-      if (outputValue !== currentValue) {
-        newTerminalValues.get(component.id)?.set(terminalName, outputValue);
-      }
+    if (!changed) {
+      break;
     }
   }
 
-  return newTerminalValues;
+  // TODO(#31): if loop exceeded MAX_ITERATIONS, tell the user somehow
+
+  return result;
 }
