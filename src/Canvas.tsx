@@ -18,8 +18,10 @@ import type Position from "./types/Position";
 import { SIMULATION_VALUE_COLOR } from "./utils/simulationColors";
 import useSimulation from "./hooks/useSimulation";
 import SimulationToolbar from "./SimulationToolbar";
+import getComponentGeometry from "./components/getComponentGeometry";
 
 const MAX_CUBE_BEZIER_ANCHOR_DISTANCE = 50;
+const SELECTION_RECTANGLE_MARGIN = 10;
 
 // Get mouse position relative to SVG element
 function getSvgMousePosition(e: React.MouseEvent<SVGElement>): {
@@ -163,7 +165,6 @@ export default function Canvas() {
   };
 
   const selectedComponent = selectedId ? getComponent(selectedId) : undefined;
-  const selectionColor = [0, 136, 246];
 
   return (
     <div className="grow relative bg-default overflow-hidden canvas-grid">
@@ -186,41 +187,6 @@ export default function Canvas() {
           deselect();
         }}
       >
-        {/* Selection highlight filter */}
-        <defs>
-          <filter
-            id="selection-glow"
-            x="-50%"
-            y="-50%"
-            width="200%"
-            height="200%"
-          >
-            {/* Create a dilated, blurred, colorized copy for the glow */}
-            <feMorphology
-              in="SourceAlpha"
-              operator="dilate"
-              radius="5"
-              result="dilated"
-            />
-            <feGaussianBlur in="dilated" stdDeviation="0.1" result="blurred" />
-            <feFlood
-              floodColor={`rgb(${selectionColor[0]},${selectionColor[1]},${selectionColor[2]})`}
-              result="glowColor"
-            />
-            <feComposite
-              in="glowColor"
-              in2="blurred"
-              operator="in"
-              result="coloredGlow"
-            />
-            {/* Layer: glow behind, original on top */}
-            <feMerge>
-              <feMergeNode in="coloredGlow" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-
         {/* Render completed wires */}
         {wires.map((wire) => {
           const fromPos = getTerminalPosition(
@@ -259,52 +225,69 @@ export default function Canvas() {
           />
         )}
 
-        {components.map((component) => (
-          <g
-            key={component.id}
-            style={{
-              cursor: simulation.isSimulating
-                ? "default"
-                : draggingId === component.id
-                  ? "grabbing"
-                  : "grab",
-              filter:
-                selectedId === component.id ? "url(#selection-glow)" : "none",
-            }}
-            onMouseDown={(e) => {
-              if (simulation.isSimulating) return; // Disable during simulation
-              e.stopPropagation();
-              startDrag(getSvgMousePosition(e), component);
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {renderComponent(component, {
-              onSwitchToggle:
-                component.kind === "switch"
-                  ? () => {
-                      updateComponentOptions(component.id, {
-                        ...component.options,
-                        isOn: !(component.options as SwitchComponentOptions)
-                          .isOn,
-                      });
-                    }
-                  : undefined,
-              onInputValueChange:
-                component.kind === "input"
-                  ? (newValue: bigint) => {
-                      updateComponentOptions(component.id, {
-                        ...component.options,
-                        value: newValue,
-                      });
-                    }
-                  : undefined,
-              ledInputValue:
-                component.kind === "led" && simulation.isSimulating
-                  ? simulation.result.get(component.id)?.get("in")
-                  : undefined,
-            })}
-          </g>
-        ))}
+        {components.map((component) => {
+          const geo = getComponentGeometry(component);
+          return (
+            <g
+              key={component.id}
+              style={{
+                cursor: simulation.isSimulating
+                  ? "default"
+                  : draggingId === component.id
+                    ? "grabbing"
+                    : "grab",
+              }}
+              onMouseDown={(e) => {
+                if (simulation.isSimulating) return; // Disable during simulation
+                e.stopPropagation();
+                startDrag(getSvgMousePosition(e), component);
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {component.id === selectedId && (
+                <rect
+                  x={
+                    component.position.x +
+                    geo.leftX -
+                    SELECTION_RECTANGLE_MARGIN
+                  }
+                  y={
+                    component.position.y + geo.topY - SELECTION_RECTANGLE_MARGIN
+                  }
+                  width={geo.width + 2 * SELECTION_RECTANGLE_MARGIN}
+                  height={geo.height + 2 * SELECTION_RECTANGLE_MARGIN}
+                  rx={3}
+                  fill="#ffffff22"
+                />
+              )}
+              {renderComponent(component, {
+                onSwitchToggle:
+                  component.kind === "switch"
+                    ? () => {
+                        updateComponentOptions(component.id, {
+                          ...component.options,
+                          isOn: !(component.options as SwitchComponentOptions)
+                            .isOn,
+                        });
+                      }
+                    : undefined,
+                onInputValueChange:
+                  component.kind === "input"
+                    ? (newValue: bigint) => {
+                        updateComponentOptions(component.id, {
+                          ...component.options,
+                          value: newValue,
+                        });
+                      }
+                    : undefined,
+                ledInputValue:
+                  component.kind === "led" && simulation.isSimulating
+                    ? simulation.result.get(component.id)?.get("in")
+                    : undefined,
+              })}
+            </g>
+          );
+        })}
 
         {/* Render terminal circles and simulation values */}
         {allTerminals.map((terminal) => {

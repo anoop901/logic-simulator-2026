@@ -10,6 +10,7 @@ import { getMemoryGeometry } from "./memory";
 import { getConstantGeometry } from "./constant";
 import { getSwitchGeometry } from "./switch";
 import { getLEDGeometry } from "./led";
+import { getInputGeometry } from "./input";
 
 /**
  * Standard component geometry interface.
@@ -61,6 +62,9 @@ export default function getComponentGeometry(
     },
     visitLED() {
       return getLEDGeometry();
+    },
+    visitInput(options) {
+      return getInputGeometry(options.bitWidth, options.displayFormat);
     },
   });
 }
