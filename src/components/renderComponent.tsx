@@ -9,10 +9,12 @@ import MuxRenderer from "./MuxRenderer";
 import NotRenderer from "./NotRenderer";
 import RegisterRenderer from "./RegisterRenderer";
 import SwitchRenderer from "./SwitchRenderer";
+import InputRenderer from "./InputRenderer";
 import visitComponent from "./visitComponent";
 
 interface RenderComponentOptions {
   onSwitchToggle?: () => void;
+  onInputValueChange?: (newValue: bigint) => void;
   ledInputValue?: bigint;
 }
 
@@ -104,6 +106,15 @@ export default function renderComponent(
         y={position.y}
         options={ledOptions}
         inputValue={options?.ledInputValue}
+      />
+    ),
+    visitInput: (inputOptions) => (
+      <InputRenderer
+        key={id}
+        x={position.x}
+        y={position.y}
+        options={inputOptions}
+        onValueChange={options?.onInputValueChange ?? (() => {})}
       />
     ),
   });

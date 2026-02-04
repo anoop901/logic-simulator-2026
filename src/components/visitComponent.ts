@@ -10,6 +10,7 @@ import type {
   NotComponentOptions,
   RegisterComponentOptions,
   SwitchComponentOptions,
+  InputComponentOptions,
 } from "../types/LogicComponent";
 
 interface ComponentVisitor<T> {
@@ -23,6 +24,7 @@ interface ComponentVisitor<T> {
   visitConstant(options: ConstantComponentOptions): T;
   visitSwitch(options: SwitchComponentOptions): T;
   visitLED(options: LEDComponentOptions): T;
+  visitInput(options: InputComponentOptions): T;
 }
 
 export default function visitComponent<T>(
@@ -51,6 +53,8 @@ export default function visitComponent<T>(
       return visitor.visitSwitch(options as SwitchComponentOptions);
     case "led":
       return visitor.visitLED(options as LEDComponentOptions);
+    case "input":
+      return visitor.visitInput(options as InputComponentOptions);
     default:
       throw new Error(`unknown component kind ${component.kind}`);
   }

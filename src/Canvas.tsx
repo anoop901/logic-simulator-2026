@@ -120,8 +120,11 @@ export default function Canvas() {
 
     try {
       const { kind, options } = JSON.parse(data);
-      // Convert value to BigInt for constant components (JSON parses as number)
-      if (kind === "constant" && typeof options.value === "number") {
+      // Convert value to BigInt for constant/input components (JSON parses as number)
+      if (
+        (kind === "constant" || kind === "input") &&
+        typeof options.value === "number"
+      ) {
         options.value = BigInt(options.value);
       }
       const newId = addComponent(kind, getSvgMousePosition(e), options);
@@ -192,21 +195,29 @@ export default function Canvas() {
             width="200%"
             height="200%"
           >
-            <feColorMatrix
-              type="matrix"
-              values={[
-                [0, 0, 0, 0, selectionColor[0] / 255].join(" "),
-                [0, 0, 0, 0, selectionColor[1] / 255].join(" "),
-                [0, 0, 0, 0, selectionColor[2] / 255].join(" "),
-                [0, 0, 0, 1, 0].join(" "),
-              ].join("  ")}
+            {/* Create a dilated, blurred, colorized copy for the glow */}
+            <feMorphology
+              in="SourceAlpha"
+              operator="dilate"
+              radius="5"
+              result="dilated"
             />
-            <feDropShadow
-              dx="0"
-              dy="0"
-              stdDeviation="5"
+            <feGaussianBlur in="dilated" stdDeviation="0.1" result="blurred" />
+            <feFlood
               floodColor={`rgb(${selectionColor[0]},${selectionColor[1]},${selectionColor[2]})`}
+              result="glowColor"
             />
+            <feComposite
+              in="glowColor"
+              in2="blurred"
+              operator="in"
+              result="coloredGlow"
+            />
+            {/* Layer: glow behind, original on top */}
+            <feMerge>
+              <feMergeNode in="coloredGlow" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
           </filter>
         </defs>
 
@@ -262,7 +273,6 @@ export default function Canvas() {
             }}
             onMouseDown={(e) => {
               if (simulation.isSimulating) return; // Disable during simulation
-              e.preventDefault();
               e.stopPropagation();
               startDrag(getSvgMousePosition(e), component);
             }}
@@ -276,6 +286,15 @@ export default function Canvas() {
                         ...component.options,
                         isOn: !(component.options as SwitchComponentOptions)
                           .isOn,
+                      });
+                    }
+                  : undefined,
+              onInputValueChange:
+                component.kind === "input"
+                  ? (newValue: bigint) => {
+                      updateComponentOptions(component.id, {
+                        ...component.options,
+                        value: newValue,
                       });
                     }
                   : undefined,

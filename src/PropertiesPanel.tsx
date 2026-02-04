@@ -51,6 +51,10 @@ export default function PropertiesPanel({
       visitConstant: (options) => (
         <ConstantEditor options={options} onUpdate={onUpdateOptions} />
       ),
+      visitInput: (options) => (
+        // Input options are identical to Constant options
+        <ConstantEditor options={options} onUpdate={onUpdateOptions} />
+      ),
       visitSwitch: () => <></>,
       visitLED: () => <></>,
     });

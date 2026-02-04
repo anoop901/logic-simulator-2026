@@ -85,6 +85,12 @@ const COMPONENT_MENU_OPTIONS: ComponentMenuOption[] = [
     kind: "led",
     options: {},
   },
+  {
+    name: "8-bit Input",
+    category: "IO",
+    kind: "input",
+    options: { bitWidth: 8, value: 0n, displayFormat: "hex" },
+  },
 
   // Combinational - Mux
   {
