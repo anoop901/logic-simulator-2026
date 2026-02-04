@@ -1,4 +1,8 @@
 import type { LEDComponentOptions } from "../types/LogicComponent";
+import {
+  SIMULATION_VALUE_COLOR,
+  SIMULATION_VALUE_COLOR_DARK,
+} from "../utils/simulationColors";
 import { getLEDGeometry } from "./led";
 
 interface LEDRendererProps {
@@ -11,9 +15,6 @@ interface LEDRendererProps {
 export default function LEDRenderer({ x, y, inputValue }: LEDRendererProps) {
   const geo = getLEDGeometry();
 
-  // LED is lit if input value is non-zero
-  const isLit = inputValue !== undefined && inputValue !== 0n;
-
   return (
     <g transform={`translate(${x}, ${y})`}>
       {/* LED circle */}
@@ -21,7 +22,13 @@ export default function LEDRenderer({ x, y, inputValue }: LEDRendererProps) {
         cx={geo.centerX}
         cy={geo.centerY}
         r={geo.radius}
-        fill={isLit ? "#ffffff80" : "transparent"}
+        fill={
+          inputValue == null
+            ? "transparent"
+            : inputValue === 0n
+              ? SIMULATION_VALUE_COLOR_DARK
+              : SIMULATION_VALUE_COLOR
+        }
         stroke="white"
         strokeWidth="2"
       />

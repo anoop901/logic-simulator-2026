@@ -293,11 +293,8 @@ export default function Canvas() {
           );
         })}
 
-        {/* Render terminal circles and simulation values */}
+        {/* Render terminal circles */}
         {allTerminals.map((terminal) => {
-          const componentValues = simulation.result.get(terminal.componentId);
-          const value = componentValues?.get(terminal.name);
-
           return (
             <g key={`${terminal.componentId}-${terminal.name}`}>
               {!isTerminalConnected(terminal.componentId, terminal.name) && (
@@ -324,22 +321,6 @@ export default function Canvas() {
                   }}
                 />
               )}
-              {/* Display simulation value for output terminals */}
-              {simulation.isSimulating &&
-                terminal.direction === "out" &&
-                value !== undefined && (
-                  <text
-                    x={terminal.position.x + 8}
-                    y={terminal.position.y + 4}
-                    fill={SIMULATION_VALUE_COLOR}
-                    fontSize="12"
-                    fontFamily="monospace"
-                    fontWeight="bold"
-                    style={{ pointerEvents: "none" }}
-                  >
-                    {value.toString()}
-                  </text>
-                )}
             </g>
           );
         })}
