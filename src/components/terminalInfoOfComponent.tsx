@@ -1,4 +1,7 @@
-import type { LogicComponent } from "../types/LogicComponent";
+import type {
+  LogicComponent,
+  OutputComponentOptions,
+} from "../types/LogicComponent";
 import type Position from "../types/Position";
 import { terminalInfoOfAdder } from "./adder";
 import { terminalInfoOfConstant } from "./constant";
@@ -12,6 +15,7 @@ import { terminalInfoOfNot } from "./not";
 import { terminalInfoOfRegister } from "./register";
 import { terminalInfoOfSwitch } from "./switch";
 import visitComponent from "./visitComponent";
+import { terminalInfoOfOutput } from "./output";
 
 export interface TerminalInfo {
   name: string;
@@ -35,5 +39,6 @@ export default function terminalInfoOfComponent(
     visitSwitch: () => terminalInfoOfSwitch(position),
     visitLED: () => terminalInfoOfLED(position),
     visitInput: (options) => terminalInfoOfInput(position, options),
+    visitOutput: (options) => terminalInfoOfOutput(position, options),
   });
 }

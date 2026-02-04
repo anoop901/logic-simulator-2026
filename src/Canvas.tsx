@@ -284,6 +284,10 @@ export default function Canvas() {
                   component.kind === "led" && simulation.isSimulating
                     ? simulation.result.get(component.id)?.get("in")
                     : undefined,
+                outputInputValue:
+                  component.kind === "output" && simulation.isSimulating
+                    ? simulation.result.get(component.id)?.get("in")
+                    : undefined,
               })}
             </g>
           );

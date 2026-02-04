@@ -11,7 +11,7 @@ interface ConstantEditorProps {
   onUpdate: (options: ConstantComponentOptions) => void;
 }
 
-const DISPLAY_FORMAT_OPTIONS = [
+export const DISPLAY_FORMAT_OPTIONS = [
   { value: "bin", label: "Binary" },
   { value: "dec", label: "Decimal" },
   { value: "hex", label: "Hexadecimal" },

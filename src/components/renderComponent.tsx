@@ -11,11 +11,13 @@ import RegisterRenderer from "./RegisterRenderer";
 import SwitchRenderer from "./SwitchRenderer";
 import InputRenderer from "./InputRenderer";
 import visitComponent from "./visitComponent";
+import OutputRenderer from "./OutputRenderer";
 
 interface RenderComponentOptions {
   onSwitchToggle?: () => void;
   onInputValueChange?: (newValue: bigint) => void;
   ledInputValue?: bigint;
+  outputInputValue?: bigint;
 }
 
 // Render a component based on its kind
@@ -115,6 +117,15 @@ export default function renderComponent(
         y={position.y}
         options={inputOptions}
         onValueChange={options?.onInputValueChange ?? (() => {})}
+      />
+    ),
+    visitOutput: (outputOptions) => (
+      <OutputRenderer
+        key={id}
+        x={position.x}
+        y={position.y}
+        options={outputOptions}
+        inputValue={options?.outputInputValue}
       />
     ),
   });

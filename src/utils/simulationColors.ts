@@ -3,3 +3,4 @@
  * This color should not be used elsewhere in the app.
  */
 export const SIMULATION_VALUE_COLOR = "#00FFAA";
+export const SIMULATION_VALUE_COLOR_DARK = "#001A11";

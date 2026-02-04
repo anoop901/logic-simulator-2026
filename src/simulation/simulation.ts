@@ -11,6 +11,7 @@ import { simulateMemory } from "../components/memory";
 import visitComponent from "../components/visitComponent";
 import { simulateSwitch } from "../components/switch";
 import { simulateInput } from "../components/input";
+import { simulateOutput } from "../components/output";
 
 /**
  * State for sequential components (registers and memory).
@@ -51,5 +52,6 @@ export function simulateComponent(
     visitSwitch: (options) => simulateSwitch(options),
     visitLED: (options) => simulateLED(options, inputs),
     visitInput: (options) => simulateInput(options),
+    visitOutput: (options) => simulateOutput(options, inputs),
   });
 }

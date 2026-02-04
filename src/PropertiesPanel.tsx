@@ -11,6 +11,7 @@ import RegisterEditor from "./editors/RegisterEditor";
 import MemoryEditor from "./editors/MemoryEditor";
 import ConstantEditor from "./editors/ConstantEditor";
 import visitComponent from "./components/visitComponent";
+import OutputEditor from "./editors/OutputEditor";
 
 interface PropertiesPanelProps {
   selectedComponent: LogicComponent;
@@ -57,6 +58,9 @@ export default function PropertiesPanel({
       ),
       visitSwitch: () => <></>,
       visitLED: () => <></>,
+      visitOutput: (options) => (
+        <OutputEditor options={options} onUpdate={onUpdateOptions} />
+      ),
     });
 
   return (

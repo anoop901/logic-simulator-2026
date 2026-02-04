@@ -67,6 +67,11 @@ export interface InputComponentOptions {
   displayFormat: DisplayFormat;
 }
 
+export interface OutputComponentOptions {
+  bitWidth: number;
+  displayFormat: DisplayFormat;
+}
+
 export type ComponentOptions =
   | GateComponentOptions
   | NotComponentOptions
@@ -76,9 +81,10 @@ export type ComponentOptions =
   | RegisterComponentOptions
   | MemoryComponentOptions
   | ConstantComponentOptions
-  | InputComponentOptions
   | SwitchComponentOptions
-  | LEDComponentOptions;
+  | LEDComponentOptions
+  | InputComponentOptions
+  | OutputComponentOptions;
 
 // The main LogicComponent type with shared fields
 export interface LogicComponent {

@@ -1,4 +1,7 @@
-import type { LogicComponent } from "../types/LogicComponent";
+import type {
+  LogicComponent,
+  OutputComponentOptions,
+} from "../types/LogicComponent";
 import visitComponent from "./visitComponent";
 import { getGateGeometry } from "./gate";
 import { getNotGeometry } from "./not";
@@ -11,6 +14,7 @@ import { getConstantGeometry } from "./constant";
 import { getSwitchGeometry } from "./switch";
 import { getLEDGeometry } from "./led";
 import { getInputGeometry } from "./input";
+import { getOutputGeometry } from "./output";
 
 /**
  * Standard component geometry interface.
@@ -65,6 +69,9 @@ export default function getComponentGeometry(
     },
     visitInput(options) {
       return getInputGeometry(options.bitWidth, options.displayFormat);
+    },
+    visitOutput(options: OutputComponentOptions) {
+      return getOutputGeometry(options.bitWidth, options.displayFormat);
     },
   });
 }
