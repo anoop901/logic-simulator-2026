@@ -138,7 +138,7 @@ export function terminalInfoOfSplitterMerger(
   const multiTerminalSideDirection = geo.isSplitter ? "out" : "in";
   const directionToX = { out: geo.rightX, in: geo.leftX };
   result.push({
-    name: formatTerminalName(singleTerminalSideDirection, inputBitWidth - 1, 0),
+    name: singleTerminalSideDirection,
     direction: singleTerminalSideDirection,
     position: {
       x: position.x + directionToX[singleTerminalSideDirection],
@@ -182,7 +182,7 @@ export function simulateSplitterMerger(
 
   if (geo.isSplitter) {
     // Splitter: extract chunks from single input
-    const inputName = formatTerminalName("in", inputBitWidth - 1, 0);
+    const inputName = "in";
     const inputValue = inputs.get(inputName) ?? 0n;
 
     for (const chunk of geo.chunks) {
@@ -210,7 +210,7 @@ export function simulateSplitterMerger(
       outputValue |= (inputValue & mask) << shiftAmount;
     }
 
-    const outputName = formatTerminalName("out", outputBitWidth - 1, 0);
+    const outputName = "out";
     outputs.set(outputName, outputValue);
   }
 

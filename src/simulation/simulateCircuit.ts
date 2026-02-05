@@ -88,6 +88,7 @@ export function simulateCircuit(
   }
 
   const MAX_ITERATIONS = 100;
+  let stabilized = false;
   let iteration = 0;
   for (iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
     // Shuffle components to randomize propagation order
@@ -110,11 +111,17 @@ export function simulateCircuit(
       updateInputTerminalsConnectedToComponentOutputs(component);
     }
     if (!changed) {
+      stabilized = true;
       break;
     }
   }
 
   // TODO(#31): if loop exceeded MAX_ITERATIONS, tell the user somehow
+  if (!stabilized) {
+    console.error(
+      `Circuit failed to stabilize after ${MAX_ITERATIONS} iterations`,
+    );
+  }
 
   return result;
 }
