@@ -9,6 +9,7 @@ import { updateRegisterOnClockEdge } from "../components/register";
 import { updateMemoryOnClockEdge } from "../components/memory";
 import type { CircuitSimulationResult } from "../simulation/simulateCircuit";
 import terminalInfoOfComponent from "../components/terminalInfoOfComponent";
+import equal from "fast-deep-equal/es6";
 
 /**
  * Hook to manage state for sequential components during simulation.
@@ -67,10 +68,14 @@ export default function useSimulationState(components: LogicComponent[]) {
         }
       }
 
-      return {
+      const newState = {
         registerStates: newRegisterStates,
         memoryStates: newMemoryStates,
       };
+      if (equal(newState, prevState)) {
+        return prevState;
+      }
+      return newState;
     });
   }, [components]);
 
