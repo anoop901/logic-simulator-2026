@@ -16,12 +16,13 @@ import useComponentDrag from "./hooks/useComponentDrag";
 import useWireDrag from "./hooks/useWireDrag";
 import type Position from "./types/Position";
 import useSimulation from "./hooks/useSimulation";
+import useWireRouting from "./hooks/useWireRouting";
 import SimulationToolbar from "./SimulationToolbar";
 import getComponentGeometry from "./components/getComponentGeometry";
 import { DEBUGINFO_COLOR } from "./utils/constants";
 import debugConfig from "./utils/debugConfig";
+import type { RoutePoint } from "./routing";
 
-const MAX_CUBE_BEZIER_ANCHOR_DISTANCE = 50;
 const SELECTION_RECTANGLE_MARGIN = 10;
 
 // Get mouse position relative to SVG element
@@ -37,19 +38,28 @@ function getSvgMousePosition(e: React.MouseEvent<SVGElement>): {
   };
 }
 
-const wirePath = ({ x: x1, y: y1 }: Position, { x: x2, y: y2 }: Position) => {
-  const distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-  const anchorDistance = Math.min(
-    distance / 3,
-    MAX_CUBE_BEZIER_ANCHOR_DISTANCE,
-  );
-  return (
-    `M ${x1} ${y1} ` +
-    `C ${x1 + anchorDistance} ${y1}, ` +
-    `${x2 - anchorDistance} ${y2}, ` +
-    `${x2} ${y2}`
-  );
-};
+/**
+ * Generate SVG path string from orthogonal route points.
+ */
+function wirePathFromPoints(points: RoutePoint[]): string {
+  if (points.length === 0) return "";
+  if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+
+  let path = `M ${points[0].x} ${points[0].y}`;
+  for (let i = 1; i < points.length; i++) {
+    path += ` L ${points[i].x} ${points[i].y}`;
+  }
+  return path;
+}
+
+/**
+ * Generate a simple L-path for in-progress wire drag.
+ * Goes horizontal first, then vertical.
+ */
+function dragWirePath(from: Position, to: Position): string {
+  const midX = to.x;
+  return `M ${from.x} ${from.y} L ${midX} ${from.y} L ${to.x} ${to.y}`;
+}
 
 export default function Canvas() {
   const { selectedId, select, deselect } = useSelection();
@@ -98,16 +108,13 @@ export default function Canvas() {
 
   const simulation = useSimulation({ components, wires });
 
-  // Helper to get terminal position by componentId and terminalName
-  const getTerminalPosition = (
-    componentId: string,
-    terminalName: string,
-  ): { x: number; y: number } | null => {
-    const terminal = allTerminals.find(
-      (t) => t.componentId === componentId && t.name === terminalName,
-    );
-    return terminal?.position ?? null;
-  };
+  // Wire routing with orthogonal paths
+  const { routes: wireRoutes } = useWireRouting({
+    components,
+    wires,
+    allTerminals,
+    isDragging: draggingId !== null,
+  });
 
   const handleDragOver = (e: React.DragEvent<SVGSVGElement>) => {
     e.preventDefault();
@@ -186,22 +193,15 @@ export default function Canvas() {
           deselect();
         }}
       >
-        {/* Render completed wires */}
+        {/* Render completed wires with orthogonal routing */}
         {wires.map((wire) => {
-          const fromPos = getTerminalPosition(
-            wire.from.componentId,
-            wire.from.terminalName,
-          );
-          const toPos = getTerminalPosition(
-            wire.to.componentId,
-            wire.to.terminalName,
-          );
-          if (!fromPos || !toPos) return null;
+          const routePoints = wireRoutes.get(wire.id);
+          if (!routePoints || routePoints.length < 2) return null;
 
           return (
             <path
               key={wire.id}
-              d={wirePath(fromPos, toPos)}
+              d={wirePathFromPoints(routePoints)}
               stroke="white"
               strokeWidth="2"
               fill="none"
@@ -212,7 +212,7 @@ export default function Canvas() {
         {/* Render in-progress wire drag */}
         {wireDrag && (
           <path
-            d={wirePath(
+            d={dragWirePath(
               wireDrag.fromPosition,
               wireDragSnappedPosition ?? wireDrag.currentPosition,
             )}
