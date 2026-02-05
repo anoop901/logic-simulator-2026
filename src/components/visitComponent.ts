@@ -12,6 +12,7 @@ import type {
   SwitchComponentOptions,
   InputComponentOptions,
   OutputComponentOptions,
+  SplitterMergerComponentOptions,
 } from "../types/LogicComponent";
 
 interface ComponentVisitor<T> {
@@ -27,6 +28,7 @@ interface ComponentVisitor<T> {
   visitLED(options: LEDComponentOptions): T;
   visitInput(options: InputComponentOptions): T;
   visitOutput(options: OutputComponentOptions): T;
+  visitSplitterMerger(options: SplitterMergerComponentOptions): T;
 }
 
 export default function visitComponent<T>(
@@ -59,6 +61,10 @@ export default function visitComponent<T>(
       return visitor.visitInput(options as InputComponentOptions);
     case "output":
       return visitor.visitOutput(options as OutputComponentOptions);
+    case "splitterMerger":
+      return visitor.visitSplitterMerger(
+        options as SplitterMergerComponentOptions,
+      );
     default:
       throw new Error(`unknown component kind ${component.kind}`);
   }

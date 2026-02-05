@@ -15,6 +15,7 @@ import { getSwitchGeometry } from "./switch";
 import { getLEDGeometry } from "./led";
 import { getInputGeometry } from "./input";
 import { getOutputGeometry } from "./output";
+import { getSplitterMergerGeometry } from "./splitterMerger";
 
 /**
  * Standard component geometry interface.
@@ -72,6 +73,12 @@ export default function getComponentGeometry(
     },
     visitOutput(options: OutputComponentOptions) {
       return getOutputGeometry(options.bitWidth, options.displayFormat);
+    },
+    visitSplitterMerger(options) {
+      return getSplitterMergerGeometry(
+        options.inputBitWidth,
+        options.outputBitWidth,
+      );
     },
   });
 }

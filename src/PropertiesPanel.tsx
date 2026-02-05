@@ -12,6 +12,7 @@ import MemoryEditor from "./editors/MemoryEditor";
 import ConstantEditor from "./editors/ConstantEditor";
 import visitComponent from "./components/visitComponent";
 import OutputEditor from "./editors/OutputEditor";
+import SplitterMergerEditor from "./editors/SplitterMergerEditor";
 
 interface PropertiesPanelProps {
   selectedComponent: LogicComponent;
@@ -60,6 +61,9 @@ export default function PropertiesPanel({
       visitLED: () => <></>,
       visitOutput: (options) => (
         <OutputEditor options={options} onUpdate={onUpdateOptions} />
+      ),
+      visitSplitterMerger: (options) => (
+        <SplitterMergerEditor options={options} onUpdate={onUpdateOptions} />
       ),
     });
 

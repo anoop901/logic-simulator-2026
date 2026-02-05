@@ -72,6 +72,12 @@ export interface OutputComponentOptions {
   displayFormat: DisplayFormat;
 }
 
+// Bit splitter/merger component
+export interface SplitterMergerComponentOptions {
+  inputBitWidth: number; // Total bits on input side
+  outputBitWidth: number; // Total bits on output side
+}
+
 export type ComponentOptions =
   | GateComponentOptions
   | NotComponentOptions
@@ -84,7 +90,8 @@ export type ComponentOptions =
   | SwitchComponentOptions
   | LEDComponentOptions
   | InputComponentOptions
-  | OutputComponentOptions;
+  | OutputComponentOptions
+  | SplitterMergerComponentOptions;
 
 // The main LogicComponent type with shared fields
 export interface LogicComponent {

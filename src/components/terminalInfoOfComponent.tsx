@@ -1,7 +1,4 @@
-import type {
-  LogicComponent,
-  OutputComponentOptions,
-} from "../types/LogicComponent";
+import type { LogicComponent } from "../types/LogicComponent";
 import type Position from "../types/Position";
 import { terminalInfoOfAdder } from "./adder";
 import { terminalInfoOfConstant } from "./constant";
@@ -16,6 +13,7 @@ import { terminalInfoOfRegister } from "./register";
 import { terminalInfoOfSwitch } from "./switch";
 import visitComponent from "./visitComponent";
 import { terminalInfoOfOutput } from "./output";
+import { terminalInfoOfSplitterMerger } from "./splitterMerger";
 
 export interface TerminalInfo {
   name: string;
@@ -40,5 +38,7 @@ export default function terminalInfoOfComponent(
     visitLED: () => terminalInfoOfLED(position),
     visitInput: (options) => terminalInfoOfInput(position, options),
     visitOutput: (options) => terminalInfoOfOutput(position, options),
+    visitSplitterMerger: (options) =>
+      terminalInfoOfSplitterMerger(position, options),
   });
 }

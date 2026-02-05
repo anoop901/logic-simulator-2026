@@ -12,6 +12,7 @@ import SwitchRenderer from "./SwitchRenderer";
 import InputRenderer from "./InputRenderer";
 import visitComponent from "./visitComponent";
 import OutputRenderer from "./OutputRenderer";
+import SplitterMergerRenderer from "./SplitterMergerRenderer";
 
 interface RenderComponentOptions {
   onSwitchToggle?: () => void;
@@ -126,6 +127,14 @@ export default function renderComponent(
         y={position.y}
         options={outputOptions}
         inputValue={options?.outputInputValue}
+      />
+    ),
+    visitSplitterMerger: (splitterMergerOptions) => (
+      <SplitterMergerRenderer
+        key={id}
+        x={position.x}
+        y={position.y}
+        options={splitterMergerOptions}
       />
     ),
   });

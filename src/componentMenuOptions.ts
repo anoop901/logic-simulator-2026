@@ -215,6 +215,32 @@ const COMPONENT_MENU_OPTIONS: ComponentMenuOption[] = [
     kind: "memory",
     options: { type: "RAM", addressSize: 16, wordSize: 4 },
   },
+
+  // Bit Operations
+  {
+    name: "8→1 Splitter",
+    category: "Bit Operations",
+    kind: "splitterMerger",
+    options: { inputBitWidth: 8, outputBitWidth: 1 },
+  },
+  {
+    name: "1→8 Merger",
+    category: "Bit Operations",
+    kind: "splitterMerger",
+    options: { inputBitWidth: 1, outputBitWidth: 8 },
+  },
+  {
+    name: "32→8 Splitter",
+    category: "Bit Operations",
+    kind: "splitterMerger",
+    options: { inputBitWidth: 32, outputBitWidth: 8 },
+  },
+  {
+    name: "8→32 Merger",
+    category: "Bit Operations",
+    kind: "splitterMerger",
+    options: { inputBitWidth: 8, outputBitWidth: 32 },
+  },
 ];
 
 export default COMPONENT_MENU_OPTIONS;

@@ -12,6 +12,7 @@ import visitComponent from "../components/visitComponent";
 import { simulateSwitch } from "../components/switch";
 import { simulateInput } from "../components/input";
 import { simulateOutput } from "../components/output";
+import { simulateSplitterMerger } from "../components/splitterMerger";
 
 /**
  * State for sequential components (registers and memory).
@@ -53,5 +54,6 @@ export function simulateComponent(
     visitLED: (options) => simulateLED(options, inputs),
     visitInput: (options) => simulateInput(options),
     visitOutput: (options) => simulateOutput(options, inputs),
+    visitSplitterMerger: (options) => simulateSplitterMerger(options, inputs),
   });
 }
