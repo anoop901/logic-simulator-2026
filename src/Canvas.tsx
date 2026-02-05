@@ -15,10 +15,11 @@ import useWires from "./hooks/useWires";
 import useComponentDrag from "./hooks/useComponentDrag";
 import useWireDrag from "./hooks/useWireDrag";
 import type Position from "./types/Position";
-import { SIMULATION_VALUE_COLOR } from "./utils/simulationColors";
 import useSimulation from "./hooks/useSimulation";
 import SimulationToolbar from "./SimulationToolbar";
 import getComponentGeometry from "./components/getComponentGeometry";
+import { DEBUGINFO_COLOR } from "./utils/constants";
+import debugConfig from "./utils/debugConfig";
 
 const MAX_CUBE_BEZIER_ANCHOR_DISTANCE = 50;
 const SELECTION_RECTANGLE_MARGIN = 10;
@@ -110,11 +111,10 @@ export default function Canvas() {
 
   const handleDragOver = (e: React.DragEvent<SVGSVGElement>) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = !simulation.isSimulating ? "copy" : "none";
+    e.dataTransfer.dropEffect = "copy";
   };
 
   const handleDrop = (e: React.DragEvent<SVGSVGElement>) => {
-    if (simulation.isSimulating) return; // Disable during simulation
     e.preventDefault();
 
     const data = e.dataTransfer.getData("application/json");
@@ -137,7 +137,6 @@ export default function Canvas() {
   };
 
   const handleCanvasMouseDown = (e: React.MouseEvent<SVGSVGElement>) => {
-    if (simulation.isSimulating) return; // Disable wire creation during simulation
     if (tryStartWireDrag(getSvgMousePosition(e))) {
       e.preventDefault();
     }
@@ -231,14 +230,9 @@ export default function Canvas() {
             <g
               key={component.id}
               style={{
-                cursor: simulation.isSimulating
-                  ? "default"
-                  : draggingId === component.id
-                    ? "grabbing"
-                    : "grab",
+                cursor: draggingId === component.id ? "grabbing" : "grab",
               }}
               onMouseDown={(e) => {
-                if (simulation.isSimulating) return; // Disable during simulation
                 e.stopPropagation();
                 startDrag(getSvgMousePosition(e), component);
               }}
@@ -281,20 +275,44 @@ export default function Canvas() {
                       }
                     : undefined,
                 ledInputValue:
-                  component.kind === "led" && simulation.isSimulating
+                  component.kind === "led"
                     ? simulation.result.get(component.id)?.get("in")
                     : undefined,
                 outputInputValue:
-                  component.kind === "output" && simulation.isSimulating
+                  component.kind === "output"
                     ? simulation.result.get(component.id)?.get("in")
                     : undefined,
               })}
+              {debugConfig.component_ids && (
+                <text
+                  x={component.position.x + geo.leftX}
+                  y={component.position.y + geo.topY - 4}
+                  fill={DEBUGINFO_COLOR}
+                  fontSize={12}
+                >
+                  id: {component.id}
+                </text>
+              )}
+              {debugConfig.register_values && component.kind === "register" && (
+                <text
+                  x={component.position.x}
+                  y={component.position.y - 6}
+                  fill={DEBUGINFO_COLOR}
+                  fontSize={12}
+                  textAnchor="middle"
+                >
+                  {simulation.state.registerStates.get(component.id)}
+                </text>
+              )}
             </g>
           );
         })}
 
         {/* Render terminal circles */}
         {allTerminals.map((terminal) => {
+          const value = simulation.result
+            .get(terminal.componentId)
+            ?.get(terminal.name);
           return (
             <g key={`${terminal.componentId}-${terminal.name}`}>
               {!isTerminalConnected(terminal.componentId, terminal.name) && (
@@ -321,13 +339,28 @@ export default function Canvas() {
                   }}
                 />
               )}
+              {debugConfig.simulation_result && (
+                <text
+                  x={
+                    terminal.position.x +
+                    (terminal.direction === "out" ? 5 : -5)
+                  }
+                  y={terminal.position.y}
+                  fontSize={12}
+                  fill={DEBUGINFO_COLOR}
+                  alignmentBaseline="middle"
+                  textAnchor={terminal.direction === "out" ? "start" : "end"}
+                >
+                  {value}
+                </text>
+              )}
             </g>
           );
         })}
       </svg>
 
-      {/* Properties panel - hidden during simulation */}
-      {selectedComponent && !simulation.isSimulating && (
+      {/* Properties panel */}
+      {selectedComponent && (
         <PropertiesPanel
           selectedComponent={selectedComponent}
           onUpdateOptions={(newOptions: ComponentOptions) => {

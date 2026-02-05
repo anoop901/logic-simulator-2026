@@ -9,20 +9,6 @@ import equal from "fast-deep-equal/es6";
  */
 export type CircuitSimulationResult = Map<string, Map<string, bigint>>;
 
-function initialSimulationResult(components: LogicComponent[]) {
-  return new Map(
-    components.map((component) => [
-      component.id,
-      new Map(
-        terminalInfoOfComponent(component).map((terminal) => [
-          terminal.name,
-          0n,
-        ]),
-      ),
-    ]),
-  );
-}
-
 function valuesAtComponentInResult(
   component: LogicComponent,
   simulationResult: CircuitSimulationResult,
@@ -62,14 +48,44 @@ export function simulateCircuit(
   state: ComponentState,
   prevResult?: CircuitSimulationResult | undefined,
 ): CircuitSimulationResult {
-  const result = structuredClone(
-    prevResult ?? initialSimulationResult(components),
+  const result: CircuitSimulationResult = new Map(
+    components.map((component) => {
+      const prevComponentResult = prevResult?.get(component.id);
+      return [
+        component.id,
+        new Map(
+          terminalInfoOfComponent(component).map((terminal) => [
+            terminal.name,
+            prevComponentResult?.get(terminal.name) ?? 0n,
+          ]),
+        ),
+      ];
+    }),
   );
 
   const outputTerminalToWire = Map.groupBy(
     wires,
     (wire) => `${wire.from.componentId}-${wire.from.terminalName}`,
   );
+
+  function updateInputTerminalsConnectedToComponentOutputs(
+    component: LogicComponent,
+  ) {
+    const outputValues = valuesAtComponentInResult(component, result, "out");
+    for (const [outputTerminalName, value] of outputValues) {
+      const outWires =
+        outputTerminalToWire.get(`${component.id}-${outputTerminalName}`) ?? [];
+      for (const outWire of outWires) {
+        const toComponentId = outWire.to.componentId;
+        const toInputTerminalName = outWire.to.terminalName;
+        result.get(toComponentId)?.set(toInputTerminalName, value);
+      }
+    }
+  }
+
+  for (const component of components) {
+    updateInputTerminalsConnectedToComponentOutputs(component);
+  }
 
   const MAX_ITERATIONS = 100;
   let iteration = 0;
@@ -86,17 +102,12 @@ export function simulateCircuit(
         continue;
       }
       changed = true;
+      // Set output terminal values in result
       for (const [outputTerminalName, value] of newOutputs) {
         result.get(component.id)?.set(outputTerminalName, value);
-        const outWires =
-          outputTerminalToWire.get(`${component.id}-${outputTerminalName}`) ??
-          [];
-        for (const outWire of outWires) {
-          const toComponentId = outWire.to.componentId;
-          const toInputTerminalName = outWire.to.terminalName;
-          result.get(toComponentId)?.set(toInputTerminalName, value);
-        }
       }
+      // Update the values at the input terminals they are connected to
+      updateInputTerminalsConnectedToComponentOutputs(component);
     }
     if (!changed) {
       break;

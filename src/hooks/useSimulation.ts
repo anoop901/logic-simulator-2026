@@ -7,6 +7,7 @@ import {
 } from "../simulation/simulateCircuit";
 import useSimulationMode, { type SimulationMode } from "./useSimulationMode";
 import useSimulationState from "./useSimulationState";
+import type { ComponentState } from "../simulation/simulation";
 
 interface UseSimulationOptions {
   components: LogicComponent[];
@@ -15,6 +16,7 @@ interface UseSimulationOptions {
 
 export interface Simulation extends SimulationMode {
   result: CircuitSimulationResult;
+  state: ComponentState;
 }
 
 export default function useSimulation({
@@ -25,8 +27,7 @@ export default function useSimulation({
   const {
     state: simulationState,
     initializeState,
-    applyClockEdge,
-    resetState,
+    updateStateOnClockStep,
   } = useSimulationState(components);
 
   // Simulation result (terminal values)
@@ -34,34 +35,27 @@ export default function useSimulation({
 
   // Clock step callback for simulation mode
   const handleClockStep = useCallback(() => {
-    applyClockEdge(result);
-  }, [applyClockEdge, result]);
+    updateStateOnClockStep(result);
+  }, [updateStateOnClockStep, result]);
 
-  // Simulation mode (start/stop, run/pause, step)
-  const simulationMode = useSimulationMode({
-    onClockStep: handleClockStep,
-    onStart: initializeState,
-    onStop: resetState,
-  });
+  const simulationMode = useSimulationMode(handleClockStep);
 
-  // Initialize simulation result when simulation starts
+  // Initialize simulation state and result on mount
   useEffect(() => {
-    if (simulationMode.isSimulating) {
-      setResult(() => simulateCircuit(components, wires, simulationState));
-    }
-  }, [simulationMode.isSimulating]);
+    initializeState();
+    setResult(() => simulateCircuit(components, wires, simulationState));
+  }, []);
 
   // Recalculate simulation result when circuit changes, or register/memory values change
   useEffect(() => {
-    if (simulationMode.isSimulating) {
-      setResult((prevResult) =>
-        simulateCircuit(components, wires, simulationState, prevResult),
-      );
-    }
+    setResult((prevResult) =>
+      simulateCircuit(components, wires, simulationState, prevResult),
+    );
   }, [simulationState, components, wires]);
 
   return {
     ...simulationMode,
+    state: simulationState,
     result,
   };
 }

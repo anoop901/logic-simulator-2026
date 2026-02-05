@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type {
   LogicComponent,
   MemoryComponentOptions,
@@ -41,10 +41,60 @@ export default function useSimulationState(components: LogicComponent[]) {
   }, [components]);
 
   /**
+   * Sync state with components when they change during simulation.
+   * Adds state for new sequential components, removes state for deleted ones.
+   */
+  useEffect(() => {
+    setState((prevState) => {
+      const newRegisterStates = new Map(prevState.registerStates);
+      const newMemoryStates = new Map(prevState.memoryStates);
+
+      // Track component IDs for cleanup
+      const registerIds = new Set<string>();
+      const memoryIds = new Set<string>();
+
+      for (const component of components) {
+        if (component.kind === "register") {
+          registerIds.add(component.id);
+          // Initialize if new
+          if (!newRegisterStates.has(component.id)) {
+            newRegisterStates.set(component.id, 0n);
+          }
+        } else if (component.kind === "memory") {
+          memoryIds.add(component.id);
+          // Initialize if new
+          if (!newMemoryStates.has(component.id)) {
+            const options = component.options as MemoryComponentOptions;
+            const size = options.wordSize * Math.pow(2, options.addressSize);
+            newMemoryStates.set(component.id, new Uint8Array(size));
+          }
+        }
+      }
+
+      // Remove state for deleted components
+      for (const id of newRegisterStates.keys()) {
+        if (!registerIds.has(id)) {
+          newRegisterStates.delete(id);
+        }
+      }
+      for (const id of newMemoryStates.keys()) {
+        if (!memoryIds.has(id)) {
+          newMemoryStates.delete(id);
+        }
+      }
+
+      return {
+        registerStates: newRegisterStates,
+        memoryStates: newMemoryStates,
+      };
+    });
+  }, [components]);
+
+  /**
    * Apply clock edge updates to all sequential elements.
    * @param terminalValues Current terminal values from simulation
    */
-  const applyClockEdge = useCallback(
+  const updateStateOnClockStep = useCallback(
     (terminalValues: CircuitSimulationResult) => {
       setState((prevState) => {
         const newRegisterStates = new Map(prevState.registerStates);
@@ -65,7 +115,7 @@ export default function useSimulationState(components: LogicComponent[]) {
               if (terminal.direction === "in" && componentTerminals) {
                 inputs.set(
                   terminal.name,
-                  componentTerminals.get(terminal.name) ?? 0n
+                  componentTerminals.get(terminal.name) ?? 0n,
                 );
               }
             }
@@ -76,7 +126,7 @@ export default function useSimulationState(components: LogicComponent[]) {
             const newState = updateRegisterOnClockEdge(
               options,
               inputs,
-              currentState
+              currentState,
             );
             newRegisterStates.set(component.id, newState);
           } else if (component.kind === "memory") {
@@ -93,7 +143,7 @@ export default function useSimulationState(components: LogicComponent[]) {
               if (terminal.direction === "in" && componentTerminals) {
                 inputs.set(
                   terminal.name,
-                  componentTerminals.get(terminal.name) ?? 0n
+                  componentTerminals.get(terminal.name) ?? 0n,
                 );
               }
             }
@@ -101,7 +151,7 @@ export default function useSimulationState(components: LogicComponent[]) {
             const newState = updateMemoryOnClockEdge(
               options,
               inputs,
-              currentState
+              currentState,
             );
             newMemoryStates.set(component.id, newState);
           }
@@ -113,20 +163,12 @@ export default function useSimulationState(components: LogicComponent[]) {
         };
       });
     },
-    [components]
+    [components],
   );
-
-  /**
-   * Reset state to initial values.
-   */
-  const resetState = useCallback(() => {
-    initializeState();
-  }, [initializeState]);
 
   return {
     state,
     initializeState,
-    applyClockEdge,
-    resetState,
+    updateStateOnClockStep,
   };
 }

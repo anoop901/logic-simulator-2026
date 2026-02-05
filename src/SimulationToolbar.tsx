@@ -1,52 +1,33 @@
 import { Button, Card } from "@heroui/react";
-import type {
-  SimulationModeState,
-  SimulationModeActions,
-} from "./hooks/useSimulationMode";
+import type { SimulationMode } from "./hooks/useSimulationMode";
 
-interface SimulationToolbarProps
-  extends SimulationModeState, SimulationModeActions {}
+interface SimulationToolbarProps extends SimulationMode {}
 
 export default function SimulationToolbar({
-  isSimulating,
   isRunning,
-  startSimulation,
-  stopSimulation,
-  clockStep,
+  onClockStep,
   run,
   pause,
 }: SimulationToolbarProps) {
   return (
     <div className="absolute w-full flex justify-center m-4 pointer-events-none">
       <Card className="flex flex-row justify-start pointer-events-auto">
-        {!isSimulating ? (
-          <Button variant="primary" onClick={startSimulation}>
-            ▶ Start Simulation
+        <Button
+          variant="secondary"
+          isDisabled={isRunning}
+          onClick={onClockStep}
+        >
+          ⏭ Step Clock
+        </Button>
+
+        {isRunning ? (
+          <Button variant="secondary" onClick={pause}>
+            ⏸ Pause Clock
           </Button>
         ) : (
-          <>
-            <Button
-              variant="secondary"
-              isDisabled={isRunning}
-              onClick={clockStep}
-            >
-              ⏭ Step
-            </Button>
-
-            {isRunning ? (
-              <Button variant="secondary" onClick={pause}>
-                ⏸ Pause
-              </Button>
-            ) : (
-              <Button variant="primary" onClick={run}>
-                ▶ Run
-              </Button>
-            )}
-
-            <Button variant="danger" onClick={stopSimulation}>
-              ⏹ Stop
-            </Button>
-          </>
+          <Button variant="primary" onClick={run}>
+            ▶ Run Clock
+          </Button>
         )}
       </Card>
     </div>
