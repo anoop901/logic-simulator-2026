@@ -46,40 +46,24 @@ export default function useSimulationState(components: LogicComponent[]) {
    */
   useEffect(() => {
     setState((prevState) => {
-      const newRegisterStates = new Map(prevState.registerStates);
-      const newMemoryStates = new Map(prevState.memoryStates);
-
-      // Track component IDs for cleanup
-      const registerIds = new Set<string>();
-      const memoryIds = new Set<string>();
+      const newRegisterStates = new Map<string, bigint>();
+      const newMemoryStates = new Map<string, Uint8Array>();
 
       for (const component of components) {
         if (component.kind === "register") {
-          registerIds.add(component.id);
-          // Initialize if new
-          if (!newRegisterStates.has(component.id)) {
-            newRegisterStates.set(component.id, 0n);
-          }
+          newRegisterStates.set(
+            component.id,
+            prevState.registerStates.get(component.id) ?? 0n,
+          );
         } else if (component.kind === "memory") {
-          memoryIds.add(component.id);
-          // Initialize if new
-          if (!newMemoryStates.has(component.id)) {
+          const prevMemoryState = prevState.memoryStates.get(component.id);
+          if (prevMemoryState != null) {
+            newMemoryStates.set(component.id, prevMemoryState);
+          } else {
             const options = component.options as MemoryComponentOptions;
             const size = options.wordSize * Math.pow(2, options.addressSize);
             newMemoryStates.set(component.id, new Uint8Array(size));
           }
-        }
-      }
-
-      // Remove state for deleted components
-      for (const id of newRegisterStates.keys()) {
-        if (!registerIds.has(id)) {
-          newRegisterStates.delete(id);
-        }
-      }
-      for (const id of newMemoryStates.keys()) {
-        if (!memoryIds.has(id)) {
-          newMemoryStates.delete(id);
         }
       }
 
