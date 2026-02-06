@@ -42,19 +42,11 @@ export default function useComponents() {
     setComponents((prev) => prev.filter((c) => c.id !== id));
   }, []);
 
-  const getComponent = useCallback(
-    (id: string): LogicComponent | undefined => {
-      return components.find((c) => c.id === id);
-    },
-    [components]
-  );
-
   return {
     components,
     addComponent,
     updateComponentPosition,
     updateComponentOptions,
     deleteComponent,
-    getComponent,
   };
 }

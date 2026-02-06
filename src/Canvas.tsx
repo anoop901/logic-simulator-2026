@@ -60,7 +60,6 @@ export default function Canvas() {
     updateComponentPosition,
     updateComponentOptions,
     deleteComponent,
-    getComponent,
   } = useComponents();
 
   const { wires, addWire, deleteWiresForComponent, isTerminalConnected } =
@@ -163,7 +162,9 @@ export default function Canvas() {
     }
   };
 
-  const selectedComponent = selectedId ? getComponent(selectedId) : undefined;
+  const selectedComponent = selectedId
+    ? components.find((c) => c.id === selectedId)
+    : undefined;
 
   return (
     <div className="grow relative bg-default overflow-hidden canvas-grid">
