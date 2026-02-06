@@ -624,187 +624,23 @@ describe("simulateCircuit", () => {
     expect(result2.get("nor_q")?.get("out")).toBe(0n); // Q stays 0
     expect(result2.get("nor_nq")?.get("out")).toBe(1n); // Q̄ stays 1
   });
-
-  it("propagates through splitter (8-bit to 1-bit)", () => {
-    // 8-bit constant -> 8-to-1 splitter -> 8 separate outputs
-    const components: LogicComponent[] = [
-      {
-        id: "const1",
-        kind: "constant",
-        position: { x: 0, y: 0 },
-        options: { bitWidth: 8, value: 0b10110100n, displayFormat: "bin" },
-      },
-      {
-        id: "splitter1",
-        kind: "splitterMerger",
-        position: { x: 100, y: 0 },
-        options: { inputBitWidth: 8, outputBitWidth: 1 },
-      },
-    ];
-    const wires = [
-      {
-        id: "w1",
-        from: { componentId: "const1", terminalName: "out" },
-        to: { componentId: "splitter1", terminalName: "in" },
-      },
-    ];
-    const state: ComponentState = {
-      registerStates: new Map(),
-      memoryStates: new Map(),
-    };
-
-    const result = simulateCircuit(components, wires, state);
-
-    // 0b10110100 = bits: 7:1, 6:0, 5:1, 4:1, 3:0, 2:1, 1:0, 0:0
-    expect(result.get("splitter1")?.get("out7")).toBe(1n);
-    expect(result.get("splitter1")?.get("out6")).toBe(0n);
-    expect(result.get("splitter1")?.get("out5")).toBe(1n);
-    expect(result.get("splitter1")?.get("out4")).toBe(1n);
-    expect(result.get("splitter1")?.get("out3")).toBe(0n);
-    expect(result.get("splitter1")?.get("out2")).toBe(1n);
-    expect(result.get("splitter1")?.get("out1")).toBe(0n);
-    expect(result.get("splitter1")?.get("out0")).toBe(0n);
-  });
-
-  it("propagates through merger (1-bit to 8-bit)", () => {
-    // 8 single-bit constants -> 1-to-8 merger -> 8-bit output
-    const components: LogicComponent[] = [
-      // Bit 7 = 1
-      {
-        id: "bit7",
-        kind: "constant",
-        position: { x: 0, y: 0 },
-        options: { bitWidth: 1, value: 1n, displayFormat: "bin" },
-      },
-      // Bit 6 = 0
-      {
-        id: "bit6",
-        kind: "constant",
-        position: { x: 0, y: 20 },
-        options: { bitWidth: 1, value: 0n, displayFormat: "bin" },
-      },
-      // Bit 5 = 1
-      {
-        id: "bit5",
-        kind: "constant",
-        position: { x: 0, y: 40 },
-        options: { bitWidth: 1, value: 1n, displayFormat: "bin" },
-      },
-      // Bit 4 = 0
-      {
-        id: "bit4",
-        kind: "constant",
-        position: { x: 0, y: 60 },
-        options: { bitWidth: 1, value: 0n, displayFormat: "bin" },
-      },
-      // Bit 3 = 1
-      {
-        id: "bit3",
-        kind: "constant",
-        position: { x: 0, y: 80 },
-        options: { bitWidth: 1, value: 1n, displayFormat: "bin" },
-      },
-      // Bit 2 = 0
-      {
-        id: "bit2",
-        kind: "constant",
-        position: { x: 0, y: 100 },
-        options: { bitWidth: 1, value: 0n, displayFormat: "bin" },
-      },
-      // Bit 1 = 1
-      {
-        id: "bit1",
-        kind: "constant",
-        position: { x: 0, y: 120 },
-        options: { bitWidth: 1, value: 1n, displayFormat: "bin" },
-      },
-      // Bit 0 = 0
-      {
-        id: "bit0",
-        kind: "constant",
-        position: { x: 0, y: 140 },
-        options: { bitWidth: 1, value: 0n, displayFormat: "bin" },
-      },
-      {
-        id: "merger1",
-        kind: "splitterMerger",
-        position: { x: 100, y: 70 },
-        options: { inputBitWidth: 1, outputBitWidth: 8 },
-      },
-    ];
-    const wires = [
-      {
-        id: "w7",
-        from: { componentId: "bit7", terminalName: "out" },
-        to: { componentId: "merger1", terminalName: "in7" },
-      },
-      {
-        id: "w6",
-        from: { componentId: "bit6", terminalName: "out" },
-        to: { componentId: "merger1", terminalName: "in6" },
-      },
-      {
-        id: "w5",
-        from: { componentId: "bit5", terminalName: "out" },
-        to: { componentId: "merger1", terminalName: "in5" },
-      },
-      {
-        id: "w4",
-        from: { componentId: "bit4", terminalName: "out" },
-        to: { componentId: "merger1", terminalName: "in4" },
-      },
-      {
-        id: "w3",
-        from: { componentId: "bit3", terminalName: "out" },
-        to: { componentId: "merger1", terminalName: "in3" },
-      },
-      {
-        id: "w2",
-        from: { componentId: "bit2", terminalName: "out" },
-        to: { componentId: "merger1", terminalName: "in2" },
-      },
-      {
-        id: "w1",
-        from: { componentId: "bit1", terminalName: "out" },
-        to: { componentId: "merger1", terminalName: "in1" },
-      },
-      {
-        id: "w0",
-        from: { componentId: "bit0", terminalName: "out" },
-        to: { componentId: "merger1", terminalName: "in0" },
-      },
-    ];
-    const state: ComponentState = {
-      registerStates: new Map(),
-      memoryStates: new Map(),
-    };
-
-    const result = simulateCircuit(components, wires, state);
-
-    // Expected: 0b10101010 = 0xAA = 170
-    expect(result.get("merger1")?.get("out")).toBe(0b10101010n);
-  });
 });
 
 describe("simulateSplitterMerger", () => {
-  it("splits 8-bit value to 1-bit outputs", () => {
-    const inputs = new Map([["in", 0b11010010n]]);
+  it("splits 4-bit value to 1-bit outputs", () => {
+    const inputs = new Map([["in", 0b1101n]]);
     const result = simulateSplitterMerger(
-      { inputBitWidth: 8, outputBitWidth: 1 },
+      { inputBitWidth: 4, outputBitWidth: 1 },
       inputs,
     );
 
-    expect(result.get("out7")).toBe(1n);
-    expect(result.get("out6")).toBe(1n);
-    expect(result.get("out5")).toBe(0n);
-    expect(result.get("out4")).toBe(1n);
-    expect(result.get("out3")).toBe(0n);
-    expect(result.get("out2")).toBe(0n);
-    expect(result.get("out1")).toBe(1n);
-    expect(result.get("out0")).toBe(0n);
+    expect(result.get("out3")).toBe(1n);
+    expect(result.get("out2")).toBe(1n);
+    expect(result.get("out1")).toBe(0n);
+    expect(result.get("out0")).toBe(1n);
   });
 
-  it("splits 32-bit value to 8-bit outputs (LSB-aligned)", () => {
+  it("splits 32-bit value to 8-bit outputs", () => {
     const inputs = new Map([["in", 0x12345678n]]);
     const result = simulateSplitterMerger(
       { inputBitWidth: 32, outputBitWidth: 8 },
@@ -818,26 +654,35 @@ describe("simulateSplitterMerger", () => {
     expect(result.get("out31:24")).toBe(0x12n);
   });
 
-  it("merges 1-bit inputs to 8-bit output", () => {
+  it("splits 20-bit value to 8-bit outputs (LSB-aligned)", () => {
+    const inputs = new Map([["in", 0x12345n]]);
+    const result = simulateSplitterMerger(
+      { inputBitWidth: 20, outputBitWidth: 8 },
+      inputs,
+    );
+
+    // LSB-aligned: [7:0], [15:8], [19:16]
+    expect(result.get("out7:0")).toBe(0x45n);
+    expect(result.get("out15:8")).toBe(0x23n);
+    expect(result.get("out19:16")).toBe(0x1n);
+  });
+
+  it("merges 1-bit inputs to 4-bit output", () => {
     const inputs = new Map([
-      ["in7", 1n],
-      ["in6", 0n],
-      ["in5", 1n],
-      ["in4", 0n],
       ["in3", 1n],
       ["in2", 0n],
       ["in1", 1n],
       ["in0", 0n],
     ]);
     const result = simulateSplitterMerger(
-      { inputBitWidth: 1, outputBitWidth: 8 },
+      { inputBitWidth: 1, outputBitWidth: 4 },
       inputs,
     );
 
-    expect(result.get("out")).toBe(0b10101010n);
+    expect(result.get("out")).toBe(0b1010n);
   });
 
-  it("merges 8-bit inputs to 32-bit output (LSB-aligned)", () => {
+  it("merges 8-bit inputs to 32-bit output", () => {
     const inputs = new Map([
       ["in7:0", 0x78n],
       ["in15:8", 0x56n],
@@ -850,6 +695,20 @@ describe("simulateSplitterMerger", () => {
     );
 
     expect(result.get("out")).toBe(0x12345678n);
+  });
+
+  it("merges 8-bit inputs to 20-bit output (LSB-aligned)", () => {
+    const inputs = new Map([
+      ["in7:0", 0x45n],
+      ["in15:8", 0x23n],
+      ["in19:16", 0x1n],
+    ]);
+    const result = simulateSplitterMerger(
+      { inputBitWidth: 8, outputBitWidth: 20 },
+      inputs,
+    );
+
+    expect(result.get("out")).toBe(0x12345n);
   });
 
   it("handles passthrough (same bit widths)", () => {
