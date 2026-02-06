@@ -1,14 +1,12 @@
 import { Button, Card } from "@heroui/react";
 import type { SimulationMode } from "./hooks/useSimulationMode";
 
-interface SimulationToolbarProps extends SimulationMode {}
-
 export default function SimulationToolbar({
   isRunning,
   onClockStep,
   run,
   pause,
-}: SimulationToolbarProps) {
+}: SimulationMode) {
   return (
     <div className="absolute w-full flex justify-center m-4 pointer-events-none">
       <Card className="flex flex-row justify-start pointer-events-auto">
