@@ -21,10 +21,10 @@ export default function useSimulationState(components: LogicComponent[]) {
   });
 
   /**
-   * Initialize state for all sequential components.
+   * Initialize state for all sequential components on mount.
    * Registers start at 0, memory allocated based on addressSize.
    */
-  const initializeState = useCallback(() => {
+  useEffect(() => {
     const registerStates = new Map<string, bigint>();
     const memoryStates = new Map<string, Uint8Array>();
 
@@ -39,7 +39,8 @@ export default function useSimulationState(components: LogicComponent[]) {
     }
 
     setState({ registerStates, memoryStates });
-  }, [components]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /**
    * Sync state with components when they change during simulation.
@@ -157,7 +158,6 @@ export default function useSimulationState(components: LogicComponent[]) {
 
   return {
     state,
-    initializeState,
     updateStateOnClockStep,
   };
 }

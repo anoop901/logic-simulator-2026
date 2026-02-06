@@ -24,14 +24,13 @@ export default function useSimulation({
   wires,
 }: UseSimulationOptions): Simulation {
   // Simulation state management (registers, memory)
-  const {
-    state: simulationState,
-    initializeState,
-    updateStateOnClockStep,
-  } = useSimulationState(components);
+  const { state: simulationState, updateStateOnClockStep } =
+    useSimulationState(components);
 
   // Simulation result (terminal values)
-  const [result, setResult] = useState<CircuitSimulationResult>(new Map());
+  const [result, setResult] = useState<CircuitSimulationResult>(() =>
+    simulateCircuit(components, wires, simulationState),
+  );
 
   // Clock step callback for simulation mode
   const handleClockStep = useCallback(() => {
@@ -39,12 +38,6 @@ export default function useSimulation({
   }, [updateStateOnClockStep, result]);
 
   const simulationMode = useSimulationMode(handleClockStep);
-
-  // Initialize simulation state and result on mount
-  useEffect(() => {
-    initializeState();
-    setResult(() => simulateCircuit(components, wires, simulationState));
-  }, []);
 
   // Recalculate simulation result when circuit changes, or register/memory values change
   useEffect(() => {
