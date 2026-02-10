@@ -5,6 +5,8 @@ import type {
 import type { TerminalWithComponent } from "./hooks/useWireDrag";
 
 import { useMemo } from "react";
+import { Button } from "@heroui/react";
+import { TrashBin } from "@gravity-ui/icons";
 import PropertiesPanel from "./PropertiesPanel";
 import renderComponent from "./components/renderComponent";
 import terminalInfoOfComponent from "./components/terminalInfoOfComponent";
@@ -62,8 +64,13 @@ export default function Canvas() {
     deleteComponent,
   } = useComponents();
 
-  const { wires, addWire, deleteWiresForComponent, isTerminalConnected } =
-    useWires();
+  const {
+    wires,
+    addWire,
+    deleteWire,
+    deleteWiresForComponent,
+    isTerminalConnected,
+  } = useWires();
 
   const { draggingId, startDrag, updateDrag, endDrag } = useComponentDrag({
     onPositionChange: updateComponentPosition,
@@ -232,6 +239,34 @@ export default function Canvas() {
                 strokeWidth="10"
                 fill="none"
               />
+              {/* Delete button on selected wire */}
+              {isSelectedWire &&
+                (() => {
+                  const midX = (fromPos.x + toPos.x) / 2;
+                  const midY = (fromPos.y + toPos.y) / 2;
+                  const size = 32;
+                  return (
+                    <foreignObject
+                      x={midX - size / 2}
+                      y={midY - size / 2}
+                      width={size}
+                      height={size}
+                    >
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="danger"
+                        onPress={() => {
+                          deleteWire(wire.id);
+                          deselect();
+                        }}
+                        aria-label="Delete wire"
+                      >
+                        <TrashBin />
+                      </Button>
+                    </foreignObject>
+                  );
+                })()}
             </g>
           );
         })}
