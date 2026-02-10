@@ -5,55 +5,16 @@ import type {
   DisplayFormat,
 } from "../types/LogicComponent";
 import { SelectField } from "./controls";
+import {
+  DISPLAY_FORMAT_OPTIONS,
+  formatValue,
+  parseValue,
+} from "../utils/displayFormat";
 
 interface RomDataEditorProps {
   options: MemoryComponentOptions;
   onUpdate: (options: MemoryComponentOptions) => void;
   state: ReturnType<typeof useOverlayState>;
-}
-
-const FORMAT_OPTIONS = [
-  { value: "hex", label: "Hex" },
-  { value: "dec", label: "Decimal" },
-  { value: "bin", label: "Binary" },
-];
-
-function formatValue(
-  value: number,
-  format: DisplayFormat,
-  bits: number,
-): string {
-  switch (format) {
-    case "hex":
-      return value
-        .toString(16)
-        .toUpperCase()
-        .padStart(Math.ceil(bits / 4), "0");
-    case "bin":
-      return value.toString(2).padStart(bits, "0");
-    case "dec":
-    default:
-      return value.toString(10);
-  }
-}
-
-function parseValue(text: string, format: DisplayFormat): number | null {
-  const trimmed = text.trim();
-  if (trimmed === "") return 0;
-  let parsed: number;
-  switch (format) {
-    case "hex":
-      parsed = parseInt(trimmed, 16);
-      break;
-    case "bin":
-      parsed = parseInt(trimmed, 2);
-      break;
-    case "dec":
-    default:
-      parsed = parseInt(trimmed, 10);
-      break;
-  }
-  return isNaN(parsed) ? null : parsed;
 }
 
 export default function RomDataEditor({
@@ -104,7 +65,7 @@ export default function RomDataEditor({
                 <SelectField
                   label="Display Format"
                   value={format}
-                  options={FORMAT_OPTIONS}
+                  options={DISPLAY_FORMAT_OPTIONS}
                   onChange={(v) => setFormat(v as DisplayFormat)}
                 />
                 <table className="w-full text-sm border-collapse">
@@ -118,20 +79,28 @@ export default function RomDataEditor({
                     {Array.from({ length: addressCount }, (_, addr) => (
                       <tr key={addr} className="border-b border-default">
                         <td className="p-1 font-mono">
-                          {formatValue(addr, "hex", options.addressSize)}
+                          {formatValue(
+                            BigInt(addr),
+                            options.addressSize,
+                            "hex",
+                          )}
                         </td>
                         <td className="p-1">
                           <input
                             className="w-full bg-default rounded px-2 py-1 font-mono text-sm outline-none focus:ring-1 focus:ring-accent"
                             value={formatValue(
-                              getValue(addr),
-                              format,
+                              BigInt(getValue(addr)),
                               wordBits,
+                              format,
                             )}
                             onChange={(e) => {
-                              const parsed = parseValue(e.target.value, format);
+                              const parsed = parseValue(
+                                e.target.value,
+                                format,
+                                wordBits,
+                              );
                               if (parsed !== null) {
-                                setValue(addr, parsed);
+                                setValue(addr, Number(parsed));
                               }
                             }}
                           />

@@ -1,50 +1,6 @@
 import { useState, useEffect } from "react";
 import type { DisplayFormat } from "../types/LogicComponent";
-import { formatValue } from "../components/constant";
-
-/**
- * Parse a string value according to display format and bit width.
- */
-function parseValue(
-  input: string,
-  displayFormat: DisplayFormat,
-  bitWidth: number,
-): bigint | null {
-  try {
-    let parsed: bigint;
-    const trimmed = input.trim();
-
-    if (trimmed === "") {
-      return null;
-    }
-
-    switch (displayFormat) {
-      case "bin":
-        parsed = BigInt("0b" + trimmed);
-        break;
-      case "dec":
-        parsed = BigInt(trimmed);
-        break;
-      case "hex": {
-        const hexStr = trimmed.replace(/^0x/i, "");
-        parsed = BigInt("0x" + hexStr);
-        break;
-      }
-    }
-
-    if (parsed < 0n) {
-      return null;
-    }
-
-    const maxValue = (1n << BigInt(bitWidth)) - 1n;
-    if (parsed > maxValue) {
-      return null;
-    }
-    return parsed;
-  } catch {
-    return null;
-  }
-}
+import { formatValue, parseValue } from "../utils/displayFormat";
 
 interface UseValueInputStringOptions {
   value: bigint;

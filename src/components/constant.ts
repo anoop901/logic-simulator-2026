@@ -48,31 +48,7 @@ export function terminalInfoOfConstant(
   ];
 }
 
-/**
- * Format a value according to display format and bit width.
- */
-export function formatValue(
-  value: bigint,
-  bitWidth: number,
-  displayFormat: DisplayFormat,
-): string {
-  // Mask the value to the bit width using BigInt
-  const mask = (1n << BigInt(bitWidth)) - 1n;
-  const maskedValue = value & mask;
-
-  switch (displayFormat) {
-    case "bin":
-      return maskedValue.toString(2).padStart(bitWidth, "0");
-    case "dec":
-      return maskedValue.toString(10);
-    case "hex": {
-      const hexDigits = Math.ceil(bitWidth / 4);
-      return (
-        "0x" + maskedValue.toString(16).toUpperCase().padStart(hexDigits, "0")
-      );
-    }
-  }
-}
+export { formatValue } from "../utils/displayFormat";
 
 /**
  * Simulate a constant component.

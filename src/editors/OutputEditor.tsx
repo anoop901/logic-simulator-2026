@@ -1,4 +1,4 @@
-import { DISPLAY_FORMAT_OPTIONS } from "./ConstantEditor";
+import { DISPLAY_FORMAT_OPTIONS } from "../utils/displayFormat";
 import SelectField from "./controls/SelectField";
 import BitWidthSelect from "./controls/BitWidthSelect";
 import type {
