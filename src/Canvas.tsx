@@ -52,7 +52,7 @@ const wirePath = ({ x: x1, y: y1 }: Position, { x: x2, y: y2 }: Position) => {
 };
 
 export default function Canvas() {
-  const { selectedId, select, deselect } = useSelection();
+  const { selection, selectComponent, selectWire, deselect } = useSelection();
 
   const {
     components,
@@ -67,7 +67,7 @@ export default function Canvas() {
 
   const { draggingId, startDrag, updateDrag, endDrag } = useComponentDrag({
     onPositionChange: updateComponentPosition,
-    onSelect: select,
+    onSelect: selectComponent,
   });
 
   // Compute all terminals for all components
@@ -129,7 +129,7 @@ export default function Canvas() {
         options.value = BigInt(options.value);
       }
       const newId = addComponent(kind, getSvgMousePosition(e), options);
-      select(newId);
+      selectComponent(newId);
     } catch {
       // Invalid data, ignore
     }
@@ -155,16 +155,17 @@ export default function Canvas() {
   };
 
   const handleDeleteComponent = () => {
-    if (selectedId) {
-      deleteComponent(selectedId);
-      deleteWiresForComponent(selectedId);
+    if (selection?.type === "component") {
+      deleteComponent(selection.id);
+      deleteWiresForComponent(selection.id);
       deselect();
     }
   };
 
-  const selectedComponent = selectedId
-    ? components.find((c) => c.id === selectedId)
-    : undefined;
+  const selectedComponent =
+    selection?.type === "component"
+      ? components.find((c) => c.id === selection.id)
+      : undefined;
 
   return (
     <div className="grow relative bg-default overflow-hidden canvas-grid">
@@ -199,14 +200,39 @@ export default function Canvas() {
           );
           if (!fromPos || !toPos) return null;
 
+          const isSelectedWire =
+            selection?.type === "wire" && selection.id === wire.id;
+          const path = wirePath(fromPos, toPos);
+
           return (
-            <path
-              key={wire.id}
-              d={wirePath(fromPos, toPos)}
-              stroke="white"
-              strokeWidth="2"
-              fill="none"
-            />
+            <g key={wire.id}>
+              {/* The actual visible wire */}
+              <path d={path} stroke={"white"} strokeWidth="2" fill="none" />
+              {/* Selected wire background */}
+              {isSelectedWire && (
+                <path
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    selectWire(wire.id);
+                  }}
+                  d={path}
+                  stroke="#ffffff33"
+                  strokeWidth="15"
+                  fill="none"
+                />
+              )}
+              {/* Hit testing area for selection */}
+              <path
+                onClick={(e) => {
+                  e.stopPropagation();
+                  selectWire(wire.id);
+                }}
+                d={path}
+                stroke="transparent"
+                strokeWidth="10"
+                fill="none"
+              />
+            </g>
           );
         })}
 
@@ -239,22 +265,25 @@ export default function Canvas() {
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              {component.id === selectedId && (
-                <rect
-                  x={
-                    component.position.x +
-                    geo.leftX -
-                    SELECTION_RECTANGLE_MARGIN
-                  }
-                  y={
-                    component.position.y + geo.topY - SELECTION_RECTANGLE_MARGIN
-                  }
-                  width={geo.width + 2 * SELECTION_RECTANGLE_MARGIN}
-                  height={geo.height + 2 * SELECTION_RECTANGLE_MARGIN}
-                  rx={3}
-                  fill="#ffffff22"
-                />
-              )}
+              {selection?.type === "component" &&
+                component.id === selection.id && (
+                  <rect
+                    x={
+                      component.position.x +
+                      geo.leftX -
+                      SELECTION_RECTANGLE_MARGIN
+                    }
+                    y={
+                      component.position.y +
+                      geo.topY -
+                      SELECTION_RECTANGLE_MARGIN
+                    }
+                    width={geo.width + 2 * SELECTION_RECTANGLE_MARGIN}
+                    height={geo.height + 2 * SELECTION_RECTANGLE_MARGIN}
+                    rx={3}
+                    fill="#ffffff22"
+                  />
+                )}
               {renderComponent(component, {
                 onSwitchToggle:
                   component.kind === "switch"
@@ -365,7 +394,7 @@ export default function Canvas() {
         <PropertiesPanel
           selectedComponent={selectedComponent}
           onUpdateOptions={(newOptions: ComponentOptions) => {
-            updateComponentOptions(selectedId!, newOptions);
+            updateComponentOptions(selection!.id, newOptions);
           }}
           onDeleteComponent={handleDeleteComponent}
         />
