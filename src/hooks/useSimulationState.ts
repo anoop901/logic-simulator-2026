@@ -21,6 +21,24 @@ export default function useSimulationState(components: LogicComponent[]) {
   });
 
   /**
+   * Build a Uint8Array for a memory component, populated from initialData if present.
+   */
+  function buildMemoryState(options: MemoryComponentOptions): Uint8Array {
+    const size = options.wordSize * Math.pow(2, options.addressSize);
+    const mem = new Uint8Array(size);
+    if (options.initialData) {
+      for (let addr = 0; addr < options.initialData.length; addr++) {
+        const value = options.initialData[addr];
+        const byteAddr = addr * options.wordSize;
+        for (let i = 0; i < options.wordSize && byteAddr + i < size; i++) {
+          mem[byteAddr + i] = (value >> (i * 8)) & 0xff;
+        }
+      }
+    }
+    return mem;
+  }
+
+  /**
    * Initialize state for all sequential components on mount.
    * Registers start at 0, memory allocated based on addressSize.
    */
@@ -33,8 +51,7 @@ export default function useSimulationState(components: LogicComponent[]) {
         registerStates.set(component.id, 0n);
       } else if (component.kind === "memory") {
         const options = component.options as MemoryComponentOptions;
-        const size = options.wordSize * Math.pow(2, options.addressSize);
-        memoryStates.set(component.id, new Uint8Array(size));
+        memoryStates.set(component.id, buildMemoryState(options));
       }
     }
 
@@ -45,6 +62,7 @@ export default function useSimulationState(components: LogicComponent[]) {
   /**
    * Sync state with components when they change during simulation.
    * Adds state for new sequential components, removes state for deleted ones.
+   * Updates ROM values changed in memory data editor.
    */
   useEffect(() => {
     setState((prevState) => {
@@ -58,13 +76,15 @@ export default function useSimulationState(components: LogicComponent[]) {
             prevState.registerStates.get(component.id) ?? 0n,
           );
         } else if (component.kind === "memory") {
+          const options = component.options as MemoryComponentOptions;
           const prevMemoryState = prevState.memoryStates.get(component.id);
-          if (prevMemoryState != null) {
+          if (options.type === "ROM") {
+            // ROM: always rebuild from initialData so edits take effect
+            newMemoryStates.set(component.id, buildMemoryState(options));
+          } else if (prevMemoryState != null) {
             newMemoryStates.set(component.id, prevMemoryState);
           } else {
-            const options = component.options as MemoryComponentOptions;
-            const size = options.wordSize * Math.pow(2, options.addressSize);
-            newMemoryStates.set(component.id, new Uint8Array(size));
+            newMemoryStates.set(component.id, buildMemoryState(options));
           }
         }
       }
