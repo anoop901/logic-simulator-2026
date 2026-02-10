@@ -1,15 +1,24 @@
 import { useState, useCallback } from "react";
 
-export default function useSelection() {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+export interface Selection {
+  type: "component" | "wire";
+  id: string;
+}
 
-  const select = useCallback((id: string) => {
-    setSelectedId(id);
+export default function useSelection() {
+  const [selection, setSelection] = useState<Selection | null>(null);
+
+  const selectComponent = useCallback((componentId: string) => {
+    setSelection({ type: "component", id: componentId });
+  }, []);
+
+  const selectWire = useCallback((wireId: string) => {
+    setSelection({ type: "wire", id: wireId });
   }, []);
 
   const deselect = useCallback(() => {
-    setSelectedId(null);
+    setSelection(null);
   }, []);
 
-  return { selectedId, select, deselect };
+  return { selection, selectComponent, selectWire, deselect };
 }
