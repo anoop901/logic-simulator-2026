@@ -5,17 +5,12 @@ import type {
 import { Label, TextField, Input } from "@heroui/react";
 import { SelectField, BitWidthSelect } from "./controls";
 import useValueInputString from "../hooks/useValueInputString";
+import { DISPLAY_FORMAT_OPTIONS } from "../utils/displayFormat";
 
 interface ConstantEditorProps {
   options: ConstantComponentOptions;
   onUpdate: (options: ConstantComponentOptions) => void;
 }
-
-export const DISPLAY_FORMAT_OPTIONS = [
-  { value: "bin", label: "Binary" },
-  { value: "dec", label: "Decimal" },
-  { value: "hex", label: "Hexadecimal" },
-];
 
 export default function ConstantEditor({
   options,

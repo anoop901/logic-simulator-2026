@@ -41,6 +41,7 @@ export interface MemoryComponentOptions {
   type: MemoryType;
   addressSize: number; // Address width in bits
   wordSize: number; // Word size in bytes
+  initialData?: number[]; // ROM data as array of word values
 }
 
 export interface SwitchComponentOptions {
